@@ -15,6 +15,7 @@ local windUpTime = 0
 local startAttackTime = 0
 local SAC = false
 local SX = false
+local MMA = false
 local interrupts = 
 {
 	Katarina = { spell = "KatarinaR" }, Tresh = { spell = "ThreshQ" }, Velkoz = { spell = "VelkozR" }, Warwick = { spell = "InfiniteDuress" }, Galio = { spell = "GalioIdolOfDurand" }, 
@@ -231,7 +232,7 @@ function RLogic()
 			local Rdmg = getDmg("R", target, myHero)
 			if Rdmg > predictedHealth then
 				local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, Spells.R.delay, Spells.R.width, Spells.R.range, Spells.R.speed, myHero, false)
-				if CastPosition and HitChance >= 2 and getRealDistance(target) > (bonusRange() + 30 + getHitBox(target)) and countAllyInRangeOfUnit(600, target) == 0 and CountEnemyHeroInRange(400) == 0 and not checkCollisionWithHeroes(target, CastPosition) then
+				if CastPosition and HitChance >= 2 and getRealDistance(target) > (bonusRange() + 30 + getHitBox(target)) and countAllyInRangeOfUnit(600, target) == 0 and CountEnemyHeroInRange(400) == 0 and not checkCollisionWithHeroes(target, CastPosition) and not isFacing(target) then
 					CastSpell(_R, CastPosition.x, CastPosition.z)
 				elseif CastPosition and HitChance >= 2 and CountEnemyHeroInRange(200, target) > 2 and getRealDistance(target) > (bonusRange() + 200 + getHitBox(target)) then
 					CastSpell(_R, CastPosition.x, CastPosition.z)
@@ -242,6 +243,15 @@ function RLogic()
 end
 
 --calculations
+
+function isFacing(tar)
+	local TargetCastPosition = VP:GetPredictedPos(tar, 1, 1750, myHero, false)
+	--local PlayerCastPosition, PlayerHitChance = VPrediction:GetPredictedPos(myHero, 1, 1750, myHero, false)
+	if GetDistance(myHero, TargetCastPosition) >= GetDistance(myHero, tar) then
+		return false
+	end
+	return true
+end
 
 function checkTick(tick)
 	if tickCount == tick then
@@ -330,18 +340,6 @@ function interruptWithE(object, spellName)
 	return false
 end
 
-function countAllyHeroInRange(range, unit)
-	local count = 0
-	for i = 1, heroManager.iCount do
-        local hero = heroManager:GetHero(i)
-        if hero.team == unit.team and GetDistance(hero, unit) < range and hero.charName ~= unit.charName then
-			count = count + 1
-        end
-    end
-	debugMsg(tostring(count)..unit.charName)
-	return count
-end
-
 function check()
 	Spells.Q.ready, Spells.W.ready, Spells.E.ready, Spells.R.ready = (myHero:CanUseSpell(_Q) == READY), (myHero:CanUseSpell(_W) == READY), (myHero:CanUseSpell(_E) == READY), (myHero:CanUseSpell(_R) == READY)
 	
@@ -410,6 +408,8 @@ function isCombo()
 		return SxOrb.isFight
 	elseif SAC then
 		return _G.AutoCarry.Keys.AutoCarry
+	elseif MMA then
+		return _G.MMA_IsOrbwalking()
 	end
 end
 
@@ -418,6 +418,8 @@ function isHarass()
 		return SxOrb.isHarass
 	elseif SAC then
 		return _G.AutoCarry.Keys.MixedMode
+	elseif MMA then
+		return _G.MMA_IsDualCarrying()
 	end
 end
 
@@ -426,6 +428,8 @@ function isLaneClear()
 		return SxOrb.isLaneClear
 	elseif SAC then
 		return _G.AutoCarry.Keys.LaneClear
+	elseif MMA then
+		return _G.MMA_IsClearing()
 	end
 end
 
@@ -434,6 +438,8 @@ function isLastHit()
 		return SxOrb.isLastHit
 	elseif SAC then
 		return _G.AutoCarry.Keys.LastHit
+	elseif MMA then
+		return _G.MMA_IsLasthitting()
 	end
 end
 
@@ -475,12 +481,14 @@ end
 function loadOrbwalker()
 	if _G.Reborn_Loaded ~= nil then
 		SAC = true
+	elseif _G.MMA_IsLoaded then
+		MMA = true
 	else
 		SX = true
 		require 'SxOrbWalk'
 	end
-	if not SAC and not SX then
-		print ("This script requires SAC:R or SxOrb to work!")
+	if not SAC and not SX and not MMA then
+		print ("This script requires SAC:R or SxOrb or MMA to work!")
 	end
 end
 
@@ -492,10 +500,13 @@ function variables()
 	minions = minionManager(MINION_ENEMY, bonusRange() + 30, myHero, MINION_SORT_MAXHEALTH_ASC)
 	jungleMinions = minionManager(MINION_JUNGLE, math.huge, myHero, MINION_SORT_MAXHEALTH_DES)
 	if SX then SxOrb:RegisterBeforeAttackCallback(QBefore) end
+	if MMA then _G.MMA_RegisterCallback('BeforeAttackCallbacks', QBefore) end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with SxOrbWalker!</font>")
 	elseif SAC then
 		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with SAC:Reborn!</font>")
+	elseif MMA then
+		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with MMA!</font>")
 	end
 end
 
