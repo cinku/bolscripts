@@ -10,6 +10,7 @@ local tickCount = 0
 local Wstacks = {}
 local SAC = false
 local SX = false
+local MMA = false
 local windUpTime = 0
 local startAttackTime = 0
 local spells = 
@@ -127,6 +128,8 @@ function disableAttacks()
 		SxOrb:DisableAttacks()
 	elseif SAC then
 		_G.AutoCarry.MyHero:AttacksEnabled(false)
+	elseif MMA then
+		_G.MMA_StopAttacks(true)
 	end
 end
 
@@ -135,6 +138,8 @@ function enableAttacks()
 		SxOrb:EnableAttacks()
 	elseif SAC then
 		_G.AutoCarry.MyHero:AttacksEnabled(true)
+	elseif MMA then
+		_G.MMA_StopAttacks(true)
 	end
 end
 
@@ -143,6 +148,8 @@ function getTarget()
 		return SxOrb:GetTarget()
 	elseif SAC then
 		return _G.AutoCarry.Crosshair:GetTarget()
+	elseif MMA then
+		return _G.MMA_Target()
 	end
 end
 
@@ -151,6 +158,8 @@ function forceTarget(tar)
 		SxOrb:ForceTarget(tar)
 	elseif SAC then
 		_G.AutoCarry.Crosshair.Attack_Crosshair.target = tar
+	elseif MMA then
+		_G.MMA_ForceTarget(tar)
 	end
 end
 
@@ -317,6 +326,8 @@ function isCombo()
 		return SxOrb.isFight
 	elseif SAC then
 		return _G.AutoCarry.Keys.AutoCarry
+	elseif MMA then
+		return _G.MMA_IsOrbwalking()
 	end
 end
 
@@ -325,6 +336,8 @@ function isHarass()
 		return SxOrb.isHarass
 	elseif SAC then
 		return _G.AutoCarry.Keys.MixedMode
+	elseif MMA then
+		return _G.MMA_IsDualCarrying()
 	end
 end
 
@@ -333,6 +346,8 @@ function isLaneClear()
 		return SxOrb.isLaneClear
 	elseif SAC then
 		return _G.AutoCarry.Keys.LaneClear
+	elseif MMA then
+		return _G.MMA_IsClearing()
 	end
 end
 
@@ -341,6 +356,8 @@ function isLastHit()
 		return SxOrb.isLastHit
 	elseif SAC then
 		return _G.AutoCarry.Keys.LastHit
+	elseif MMA then
+		return _G.MMA_IsLasthitting()
 	end
 end
 
@@ -353,12 +370,14 @@ end
 function loadOrbwalker()
 	if _G.Reborn_Loaded ~= nil then
 		SAC = true
+	elseif _G.MMA_IsLoaded then
+		MMA = true
 	else
 		SX = true
 		require 'SxOrbWalk'
 	end
-	if not SAC and not SX then
-		print ("This script requires SAC:R or SxOrb to work!")
+	if not SAC and not SX and not MMA then
+		print ("This script requires SAC:R or SxOrb or MMA to work!")
 	end
 end
 
@@ -389,10 +408,15 @@ function variables()
 		--SxOrb:RegisterBeforeAttackCallback(beforeAttack)
 		SxOrb:RegisterAfterAttackCallback(afterAttack)
 	end
+	if MMA then
+		_G.MMA_RegisterCallback('AfterAttackCallbacks', afterAttack)
+	end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen V</font><font color='#FFFFFF'>ayne Loaded with SxOrbWalker!</font>")
 	elseif SAC then
 		PrintChat ("<font color='#0084FF'>NeXtGen V</font><font color='#FFFFFF'>ayne Loaded with SAC:Reborn!</font>")
+	elseif MMA then
+		PrintChat ("<font color='#0084FF'>NeXtGen V</font><font color='#FFFFFF'>ayne Loaded with MMA!</font>")
 	end
 end
 
