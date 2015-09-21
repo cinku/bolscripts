@@ -23,7 +23,7 @@ local spells =
 if FileExist(SOURCELIB_PATH) then
 	require("SourceLib")
 else
-    DONLOADING_SOURCELIB = true
+    DOWNLOADING_SOURCELIB = true
     DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
 end
 
