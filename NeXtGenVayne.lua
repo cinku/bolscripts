@@ -157,7 +157,7 @@ function forceTarget(tar)
 	if SX then
 		SxOrb:ForceTarget(tar)
 	elseif SAC then
-		_G.AutoCarry.Crosshair.Attack_Crosshair.target = tar
+		_G.AutoCarry.Orbwalker:Orbwalk(tar)
 	elseif MMA then
 		_G.MMA_ForceTarget(tar)
 	end
@@ -420,6 +420,8 @@ function variables()
 	end
 	if SAC then
 		_G.AutoCarry.Plugins:RegisterOnAttacked(afterAttack)
+		_G.AutoCarry.MyHero:AttacksEnabled(true)
+		_G.AutoCarry.MyHero:MovementEnabled(true)
 	end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen V</font><font color='#FFFFFF'>ayne Loaded with SxOrbWalker!</font>")
