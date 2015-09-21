@@ -474,10 +474,10 @@ function menu()
 	config.rconfig.rconfigjungle:addParam("Rdragon", "Try to steal Dragon", SCRIPT_PARAM_ONOFF, true)
 	config.rconfig.rconfigjungle:addParam("Rbaron", "Try to steal Baron", SCRIPT_PARAM_ONOFF, true)
 	config:addParam("farmQ", "Farm with Q", SCRIPT_PARAM_ONOFF, true)
-	--[[if SX then
+	if SX then
 		config:addSubMenu("SxOrbWalker", "orbwalker")
 		SxOrb:LoadToMenu(config.orbwalker)
-	end]]
+	end
 	config:addTS(ts)
 	ts.name = "TargetSelector"
 end
@@ -507,6 +507,7 @@ function variables()
 	jungleMinions = minionManager(MINION_JUNGLE, math.huge, myHero, MINION_SORT_MAXHEALTH_DES)
 	if SX then SxOrb:RegisterBeforeAttackCallback(QBefore) end
 	if MMA then _G.MMA_RegisterCallback('BeforeAttackCallbacks', QBefore) end
+	if SAC then _G.AutoCarry.Plugins:RegisterPreAttack(QBefore) end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with SxOrbWalker!</font>")
 	elseif SAC then
