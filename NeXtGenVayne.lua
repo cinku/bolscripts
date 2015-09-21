@@ -413,7 +413,6 @@ function variables()
 		Wstacks[enemy.networkID] = 0
 	end
 	if SX then 
-		--SxOrb:RegisterBeforeAttackCallback(beforeAttack)
 		SxOrb:RegisterAfterAttackCallback(afterAttack)
 	end
 	if MMA then
