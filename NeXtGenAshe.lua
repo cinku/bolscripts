@@ -4,7 +4,7 @@ require 'SxOrbWalk'
 require 'VPrediction'
 
 --local variables
-local version = 1.2
+local version = "1.2"
 local SCRIPT_NAME = "NeXtGenAshe"
 local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
 local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
