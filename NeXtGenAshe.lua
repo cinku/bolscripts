@@ -53,7 +53,7 @@ function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPat
 end
 
 if AUTO_UPDATE then
-     CheckUpdate(SCRIPT_NAME, version, "raw.github.com", "/dd2repo/BoL/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/dd2repo/BoL/master/"..SCRIPT_NAME..".version")
+     CheckUpdate(SCRIPT_NAME, version, "raw.github.com", "/cinkulol/bolscripts/master"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master"..SCRIPT_NAME..".version")
 end
 
 function getVersion(version) 
