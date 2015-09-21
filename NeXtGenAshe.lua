@@ -18,14 +18,6 @@ local spells =
 	R = { ready = false, mana = 0, range = 3000, delay = 0.25, width = 130, speed = 1600}
 }
 
-if AUTO_UPDATE then
-     CheckUpdate(SCRIPT_NAME, version, "raw.github.com", "/dd2repo/BoL/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/dd2repo/BoL/master/"..SCRIPT_NAME..".version")
-end
-
-function getVersion(version) 
-	return tonumber(string.match(version or "", "%d+%.?%d*")) 
-end
-
 function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPath)
 	local fileVersion = getVersion(version)
 	local serverVersion = nil
@@ -58,6 +50,14 @@ function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPat
         print("Error downloading version info!")
     end
 
+end
+
+if AUTO_UPDATE then
+     CheckUpdate(SCRIPT_NAME, version, "raw.github.com", "/dd2repo/BoL/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/dd2repo/BoL/master/"..SCRIPT_NAME..".version")
+end
+
+function getVersion(version) 
+	return tonumber(string.match(version or "", "%d+%.?%d*")) 
 end
 
 
