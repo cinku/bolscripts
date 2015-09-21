@@ -18,7 +18,7 @@ local spells =
 	R = { ready = false, mana = 0, range = 3000, delay = 0.25, width = 130, speed = 1600}
 }
 
-if AUTOUPDATE then
+if AUTO_UPDATE then
      CheckUpdate(SCRIPT_NAME, version, "raw.github.com", "/dd2repo/BoL/master/"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/dd2repo/BoL/master/"..SCRIPT_NAME..".version")
 end
 
