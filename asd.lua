@@ -1,5 +1,6 @@
 if myHero.charName ~= "Jinx" then return end
 
+require 'SxOrbWalk'
 require 'VPrediction'
 
 --local variables
@@ -11,11 +12,6 @@ local DrakeBaronTime = 0
 local Wcast = 0
 local teleporttime = 0
 local tickCount = 0
-local windUpTime = 0
-local startAttackTime = 0
-local SAC = false
-local SX = false
-local MMA = false
 local interrupts = 
 {
 	Katarina = { spell = "KatarinaR" }, Tresh = { spell = "ThreshQ" }, Velkoz = { spell = "VelkozR" }, Warwick = { spell = "InfiniteDuress" }, Galio = { spell = "GalioIdolOfDurand" }, 
@@ -33,9 +29,9 @@ local Spells =
 --hooks
 
 function OnLoad()
-	loadOrbwalker()
 	variables()
 	menu()
+	SxOrb:RegisterBeforeAttackCallback(beforeAttack)
 end
 
 function OnTick()
@@ -53,9 +49,6 @@ function OnTick()
 	end
 	if checkTick(2) then
 		if Spells.Q.ready then
-			if SAC then
-				QBefore()
-			end
 			QLogic()
 		end
 	end
@@ -78,13 +71,6 @@ function OnTick()
 	end
 end
 
-function isWindingUp()
-	if windUpTime > GetInGameTimer() - startAttackTime then
-		return true
-	end
-	return false
-end
-
 function OnCreateObj(obj)
 	if obj.name == "global_ss_teleport_target_red.troy" then
 		teleporttime = GetInGameTimer()
@@ -94,30 +80,23 @@ end
 
 function OnProcessSpell(object, spell)
 	if config.econfig.opsE and object.team ~= myHero.team and interruptWithE(object, spell.name) and ValidTarget(object, Spells.E.range) then
-		CastSpell(_E, object.pos.x, object.pos.z)
+		CastSpell(_E, object)
 	end
 	if object.isMe and spell.name == "JinxW" then
 		Wcast = GetInGameTimer()
 	end
 end
 
-function OnProcessAttack(unit, spell)
-	if unit.isMe then
-		startAttackTime = GetInGameTimer()
-		windUpTime = spell.windUpTime
-	end
-end
-
-function QBefore()
+function beforeAttack()
 	local target = targetSelector(bonusRange() + 60, DAMAGE_PHYSICAL)
 	if Spells.Q.ready and fishBoneActive and ValidTarget(target) then
-		if isCombo() and getRealDistance(target) < getRealPowPowRange(target) and (myHero.mana < (Spells.R.mana + Spells.W.mana + 20) or myHero:CalcDamage(target, myHero.totalDamage) * 2 < target.health) then
+		if SxOrb.isFight and getRealDistance(target) < getRealPowPowRange(target) and (myHero.mana < (Spells.R.mana + Spells.W.mana + 20) or myHero:CalcDamage(target, myHero.totalDamage) * 2 < target.health) then
 			CastSpell(_Q)
 		elseif farm and (getRealDistance(target) > bonusRange() or getRealDistance(target) < getRealPowPowRange(target) or myHero.mana < (Spells.R.mana + Spells.E.mana + (Spells.W.mana*2))) then
 			CastSpell(_Q)
 		end
 	end
-	if Spells.Q.ready and isLaneClear() and not fishBoneActive and myHero.mana < (Spells.R.mana + Spells.E.mana + Spells.W.mana + 30) then
+	if Spells.Q.ready and SxOrb.isLaneClear and not fishBoneActive and myHero.mana < (Spells.R.mana + Spells.E.mana + Spells.W.mana + 30) then
 		minions:update()
 		for _, minion in pairs(minions.objects) do
 			if isInAutoAttackRange(minion) and minion.health < myHero:CalcDamage(minion, myHero.totalDamage) then
@@ -142,19 +121,19 @@ function QLogic()
 		local distance = getRealDistance(target)
 		local powPowRange = getRealPowPowRange(target)
 		if not fishBoneActive and not isInAutoAttackRange(target) then
-			if isCombo() and (myHero.mana > (Spells.R.mana + Spells.W.mana + 20) or myHero:CalcDamage(target, myHero.totalDamage)*2 > target.health) then
+			if SxOrb.isFight and (myHero.mana > (Spells.R.mana + Spells.W.mana + 20) or myHero:CalcDamage(target, myHero.totalDamage)*2 > target.health) then
 				CastSpell(_Q)
-			elseif isHarass() and myHero.mana > (Spells.R.mana + Spells.E.mana + Spells.W.mana + 20) and (distance < (bonusRange() + getHitBox(myHero) + getHitBox(target))) then
+			elseif SxOrb.isHarass and myHero.mana > (Spells.R.mana + Spells.E.mana + Spells.W.mana + 20) and (distance < (bonusRange() + getHitBox(myHero) + getHitBox(target))) then
 				CastSpell(_Q)
-			elseif isLaneClear() and not UnderTurret(myHero) and myHero.mana > (Spells.R.mana + Spells.E.mana + (Spells.W.mana*2) + 20) and distance < bonusRange() then
+			elseif SxOrb.isLaneClear and not UnderTurret(myHero) and myHero.mana > (Spells.R.mana + Spells.E.mana + (Spells.W.mana*2) + 20) and distance < bonusRange() then
 				CastSpell(_Q)
 			end
 		end
-	elseif not fishBoneActive and isCombo() and myHero.mana > (Spells.R.mana + Spells.W.mana + 20) and CountEnemyHeroInRange(2000) > 0 then
+	elseif not fishBoneActive and SxOrb.isFight and myHero.mana > (Spells.R.mana + Spells.W.mana + 20) and CountEnemyHeroInRange(2000) > 0 then
 		CastSpell(_Q)
-	elseif fishBoneActive and isCombo() and myHero.mana < (Spells.R.mana + Spells.W.mana + 20) then
+	elseif fishBoneActive and SxOrb.isFight and myHero.mana < (Spells.R.mana + Spells.W.mana + 20) then
 			CastSpell(_Q)
-	elseif fishBoneActive and isCombo() and CountEnemyHeroInRange(2000) == 0 then
+	elseif fishBoneActive and SxOrb.isFight and CountEnemyHeroInRange(2000) == 0 then
 			CastSpell(_Q)
 	elseif fishBoneActive and farm then
 			CastSpell(_Q)
@@ -162,7 +141,7 @@ function QLogic()
 end
 
 function WLogic()
-	if isWindingUp() == true then return end
+	if SxOrb:CanAttack() ~= true then return end
 	local wait = false
 	for _, enemy in ipairs(enemies) do
 		if ValidTarget(enemy, Spells.W.range) then
@@ -180,11 +159,11 @@ function WLogic()
 	local target = targetSelector(Spells.W.range, DAMAGE_PHYSICAL)
 	if ValidTarget(target) and not wait then
 		local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, Spells.W.delay, Spells.W.width, Spells.W.range, Spells.W.speed, myHero, true)
-		if CastPosition and HitChance >= 2 and isCombo() and myHero.mana > (Spells.R.mana + Spells.W.mana + 10) and CountEnemyHeroInRange(getRealPowPowRange(target)) == 0 and getRealDistance(target) > bonusRange() - 50 then
+		if CastPosition and HitChance >= 2 and SxOrb.isFight and myHero.mana > (Spells.R.mana + Spells.W.mana + 10) and CountEnemyHeroInRange(getRealPowPowRange(target)) == 0 and getRealDistance(target) > bonusRange() - 50 then
 			CastSpell(_W, CastPosition.x, CastPosition.z)
 		elseif CastPosition and HitChance >= 2 and (farm and myHero.mana > (Spells.R.mana + Spells.E.mana + (Spells.W.mana*2) + 40)) and config.wconfig["haras"..target.charName] and not UnderTurret(myHero) and CountEnemyHeroInRange(bonusRange()) == 0 then
 			CastSpell(_W, CastPosition.x, CastPosition.z)
-		elseif CastPosition and HitChance >= 2 and (farm or isCombo()) and myHero.mana > (Spells.R.mana + Spells.W.mana) and CountEnemyHeroInRange(getRealPowPowRange(target)) == 0 then
+		elseif CastPosition and HitChance >= 2 and (farm or SxOrb.isFight) and myHero.mana > (Spells.R.mana + Spells.W.mana) and CountEnemyHeroInRange(getRealPowPowRange(target)) == 0 then
 			for _, enemy in ipairs(enemies) do
 				if enemy.canMove or TargetHaveBuff("Recall", target) then
 					CastSpell(_W, CastPosition.x, CastPosition.z)
@@ -205,7 +184,7 @@ function ELogic()
 					CastSpell(_E, DashPosition.x, DashPosition.z)
 				elseif (target.canMove ~= false or (HitChance >= 3 and HitChance <= 5)) and myHero.mana > (Spells.R.mana + Spells.E.mana + Spells.W.mana) then
 					CastSpell(_E, CastPosition.x, CastPosition.z)
-				elseif config.econfig.comboE and isCombo() then
+				elseif config.econfig.comboE and SxOrb.isFight then
 					local PlayerCastPosition, PlayerHitChance, PlayerPosition = VP:GetCircularCastPosition(myHero, Spells.E.delay, Spells.E.width, Spells.E.range, Spells.E.speed, myHero, false)
 					if GetDistance(TargetCastPosition, target) > 350 and GetDistance(PlayerPosition, myHero) > 100 then
 						if GetDistance(myHero, TargetCastPosition) > GetDistance(myHero, target) then
@@ -225,14 +204,14 @@ function ELogic()
 end
 
 function RLogic()
-	if isWindingUp() == true then return end
+	if SxOrb:CanAttack() ~= true then return end
 	for _, target in ipairs(enemies) do
 		if ValidTarget(target, Spells.R.range) and (GetInGameTimer() - Wcast > 1) then
 			local predictedHealth = target.health + target.hpRegen * 2
 			local Rdmg = getDmg("R", target, myHero)
 			if Rdmg > predictedHealth then
 				local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, Spells.R.delay, Spells.R.width, Spells.R.range, Spells.R.speed, myHero, false)
-				if CastPosition and HitChance >= 2 and getRealDistance(target) > (bonusRange() + 30 + getHitBox(target)) and countAllyInRangeOfUnit(600, target) == 0 and CountEnemyHeroInRange(400) == 0 and not checkCollisionWithHeroes(target, CastPosition) and not isFacing(target) then
+				if CastPosition and HitChance >= 2 and getRealDistance(target) > (bonusRange() + 30 + getHitBox(target)) and countAllyInRangeOfUnit(600, target) == 0 and CountEnemyHeroInRange(400) == 0 and not checkCollisionWithHeroes(target, CastPosition) then
 					CastSpell(_R, CastPosition.x, CastPosition.z)
 				elseif CastPosition and HitChance >= 2 and CountEnemyHeroInRange(200, target) > 2 and getRealDistance(target) > (bonusRange() + 200 + getHitBox(target)) then
 					CastSpell(_R, CastPosition.x, CastPosition.z)
@@ -243,15 +222,6 @@ function RLogic()
 end
 
 --calculations
-
-function isFacing(tar)
-	local TargetCastPosition = VP:GetPredictedPos(tar, 1, 1750, myHero, false)
-	--local PlayerCastPosition, PlayerHitChance = VPrediction:GetPredictedPos(myHero, 1, 1750, myHero, false)
-	if GetDistance(myHero, TargetCastPosition) >= GetDistance(myHero, tar) then
-		return false
-	end
-	return true
-end
 
 function checkTick(tick)
 	if tickCount == tick then
@@ -340,6 +310,18 @@ function interruptWithE(object, spellName)
 	return false
 end
 
+function countAllyHeroInRange(range, unit)
+	local count = 0
+	for i = 1, heroManager.iCount do
+        local hero = heroManager:GetHero(i)
+        if hero.team == unit.team and GetDistance(hero, unit) < range and hero.charName ~= unit.charName then
+			count = count + 1
+        end
+    end
+	debugMsg(tostring(count)..unit.charName)
+	return count
+end
+
 function check()
 	Spells.Q.ready, Spells.W.ready, Spells.E.ready, Spells.R.ready = (myHero:CanUseSpell(_Q) == READY), (myHero:CanUseSpell(_W) == READY), (myHero:CanUseSpell(_E) == READY), (myHero:CanUseSpell(_R) == READY)
 	
@@ -347,7 +329,7 @@ function check()
 	
 	fishBoneActive = (myHero.range > 525.5)
 	
-	farm = (isLaneClear() or isHarass() or isLastHit())
+	farm = (SxOrb.isLaneClear or SxOrb.isHarass or SxOrb.isLastHit)
 	
 	if not Spells.R.ready then
 		Spells.R.mana = Spells.W.mana - myHero.mpRegen * myHero:GetSpellData(_W).currentCd
@@ -378,7 +360,7 @@ function validUltTarget(tar)
 end
 
 function getHitBox(unit)
-	return unit.boundingRadius
+	return SxOrb:Range(unit)-unit.range
 end
 
 function bonusRange()
@@ -394,53 +376,13 @@ function getRealPowPowRange(tar)
 end
 
 function isInAutoAttackRange(tar)
-	return (myHero.range + getHitBox(myHero) + getHitBox(tar) > GetDistance(tar))
+	return (SxOrb:Range(myHero) + getHitBox(tar) > GetDistance(tar))
 end
 
 function targetSelector(range, dmgType)
 	local tarsel = TargetSelector(ts.mode, range, dmgType)
 	tarsel:update()
 	return tarsel.target
-end
-
-function isCombo()
-	if SX then
-		return SxOrb.isFight
-	elseif SAC then
-		return _G.AutoCarry.Keys.AutoCarry
-	elseif MMA then
-		return _G.MMA_IsOrbwalking()
-	end
-end
-
-function isHarass()
-	if SX then
-		return SxOrb.isHarass
-	elseif SAC then
-		return _G.AutoCarry.Keys.MixedMode
-	elseif MMA then
-		return _G.MMA_IsDualCarrying()
-	end
-end
-
-function isLaneClear()
-	if SX then
-		return SxOrb.isLaneClear
-	elseif SAC then
-		return _G.AutoCarry.Keys.LaneClear
-	elseif MMA then
-		return _G.MMA_IsClearing()
-	end
-end
-
-function isLastHit()
-	if SX then
-		return SxOrb.isLastHit
-	elseif SAC then
-		return _G.AutoCarry.Keys.LastHit
-	elseif MMA then
-		return _G.MMA_IsLasthitting()
-	end
 end
 
 --variables/menu/drawings
@@ -474,28 +416,8 @@ function menu()
 	config.rconfig.rconfigjungle:addParam("Rdragon", "Try to steal Dragon", SCRIPT_PARAM_ONOFF, true)
 	config.rconfig.rconfigjungle:addParam("Rbaron", "Try to steal Baron", SCRIPT_PARAM_ONOFF, true)
 	config:addParam("farmQ", "Farm with Q", SCRIPT_PARAM_ONOFF, true)
-	--[[if SX then
-		config:addSubMenu("SxOrbWalker", "orbwalker")
-		SxOrb:LoadToMenu(config.orbwalker)
-	end]]
 	config:addTS(ts)
 	ts.name = "TargetSelector"
-end
-
-function loadOrbwalker()
-	if _G.Reborn_Initialised then
-		SAC = true
-	elseif _G.Reborn_Loaded and not _G.Reborn_Initialised then
-		DelayAction(function() loadOrbwalker() end, 1)
-	elseif _G.MMA_Loaded ~= nil and _G.MMA_Loaded then
-		MMA = true
-	else
-		SX = true
-		require 'SxOrbWalk'
-	end
-	if not SAC and not SX and not MMA then
-		print ("This script requires SAC:R or SxOrb or MMA to work!")
-	end
 end
 
 function variables()
@@ -505,15 +427,6 @@ function variables()
 	enemies = GetEnemyHeroes()
 	minions = minionManager(MINION_ENEMY, bonusRange() + 30, myHero, MINION_SORT_MAXHEALTH_ASC)
 	jungleMinions = minionManager(MINION_JUNGLE, math.huge, myHero, MINION_SORT_MAXHEALTH_DES)
-	if SX then SxOrb:RegisterBeforeAttackCallback(QBefore) end
-	if MMA then _G.MMA_RegisterCallback('BeforeAttackCallbacks', QBefore) end
-	if SX then
-		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with SxOrbWalker!</font>")
-	elseif SAC then
-		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with SAC:Reborn!</font>")
-	elseif MMA then
-		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with MMA!</font>")
-	end
 end
 
 function OnDraw()

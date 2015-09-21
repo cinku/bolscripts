@@ -126,8 +126,8 @@ end
 function disableAttacks()
 	if SX then
 		SxOrb:DisableAttacks()
-	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
-		_G.AutoCarry.MyHero:AttacksEnabled(false)
+	--elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
+	--	_G.AutoCarry.MyHero:AttacksEnabled(false)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
 	end
@@ -136,8 +136,8 @@ end
 function enableAttacks()
 	if SX then
 		SxOrb:EnableAttacks()
-	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
-		_G.AutoCarry.MyHero:AttacksEnabled(true)
+	--elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
+	--	_G.AutoCarry.MyHero:AttacksEnabled(true)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
 	end
@@ -254,7 +254,7 @@ end
 function DashCheck(dashPos)
 	for i=0, 300, 100 do
 		local ext = extend(myHero.pos, dashPos, spells.Q.range-i)
-		if IsWall(D3DXVECTOR3(ext.x, ext.y, ext.z)) then
+		if IsWall(D3DXVECTOR3(ext.x, ext.y, ext.z)) and not UnderTurret(dashPos) then
 			return false
 		end
 	end
@@ -447,6 +447,10 @@ function menu()
 	config.rconfig:addParam("autoR", "Auto R", SCRIPT_PARAM_ONOFF, true)
 	config.rconfig:addParam("blockR", "Block AA with R", SCRIPT_PARAM_ONOFF, true)
 	config.rconfig:addParam("autoQR", "Auto Q when R is active", SCRIPT_PARAM_ONOFF, true)
+	--[[if SX then
+		config:addSubMenu("SxOrbWalker", "orbwalker")
+		SxOrb:LoadToMenu(config.orbwalker)
+	end]]
 	config:addTS(ts)
 	ts.name = "TargetSelector"
 end
