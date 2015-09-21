@@ -6,6 +6,8 @@ require 'VPrediction'
 --local variables
 local version = 1.2
 local SCRIPT_NAME = "NeXtGenAshe"
+local SOURCELIB_URL = "https://raw.github.com/TheRealSource/public/master/common/SourceLib.lua"
+local SOURCELIB_PATH = LIB_PATH.."SourceLib.lua"
 local AUTO_UPDATE = true
 local enemies = {}
 local minions = {}
@@ -20,7 +22,7 @@ local spells =
 
 if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
 
-local RequireI = require "SourceLib"
+local RequireI = Require("SourceLib")
 RequireI:Check()
 
 if AUTO_UPDATE then
