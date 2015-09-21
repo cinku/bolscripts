@@ -26,7 +26,7 @@ function getVersion(version)
 	return tonumber(string.match(version or "", "%d+%.?%d*")) 
 end
 
-function SourceUpdater:CheckUpdate(scriptName, version, host, updatePath, filePath, versionPath)
+function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPath)
 	local fileVersion = getVersion(version)
 	local serverVersion = nil
 	local update_path = updatePath .. "?rand="..math.random(1,10000)
