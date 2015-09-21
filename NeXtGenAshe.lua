@@ -29,9 +29,6 @@ end
 
 if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
 
-local RequireI = Require("SourceLib")
-RequireI:Check()
-
 if AUTO_UPDATE then
      SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/cinkulol/bolscripts/master"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master"..SCRIPT_NAME..".version"):CheckUpdate()
 end
