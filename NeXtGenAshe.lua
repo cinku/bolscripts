@@ -25,8 +25,8 @@ end
 function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPath)
 	local server_version = nil
 	local file_version = getVersion(version)
-	local version_path = versionPath and versionPath .. "?rand="..math.random(1,10000)
-	local update_path = updatePath .. "?rand="..math.random(1,10000)
+	local version_path = versionPath
+	local update_path = updatePath
 	local update_url = "https://"..host..update_path
     local webResult = GetWebResult(host, version_path or update_path)
     if webResult then
