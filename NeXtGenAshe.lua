@@ -2,7 +2,7 @@ if myHero.charName ~= "Ashe" then return end
 
 local version = "1.2"
 local AUTOUPDATE = true
-local UPDATE_HOST = "raw.github.com"
+local UPDATE_HOST = "raw.githubusercontent.com"
 local UPDATE_PATH = "/cinkulol/bolscripts/master/NeXtGenAshe.lua".."?rand="..math.random(1,10000)
 local UPDATE_FILE_PATH = LIB_PATH.."NeXtGenAshe.lua"
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
