@@ -18,49 +18,14 @@ local spells =
 	R = { ready = false, mana = 0, range = 3000, delay = 0.25, width = 130, speed = 1600}
 }
 
-function getVersion(version) 
-	return tonumber(string.match(version or "", "%d+%.?%d*")) 
-end
-	
-function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPath)
-	local server_version = nil
-	local file_version = getVersion(version)
-	local version_path = versionPath
-	local update_path = updatePath
-	local update_url = "https://"..host..update_path
-    local webResult = GetWebResult(host, version_path or update_path)
-    if webResult then
-        if version_path then
-            server_version = webResult
-        else
-            server_version = string.match(webResult, "%s*local%s+version%s+=%s+.*%d+%.%d+")
-        end
-        if server_version then
-            server_version = getVersion(server_version)
-            if not server_version then
-                print("SourceLib: Please contact the developer of the script \"" .. (GetCurrentEnv().FILE_NAME or "DerpScript") .. "\", since the auto updater returned an invalid version.")
-                return
-            end
-            if file_version < server_version then
-                self.printMessage("New version available: v" .. server_version)
-                self.printMessage("Updating, please don't press F9")
-                DelayAction(function () DownloadFile(update_url, filePath, function () print("Successfully updated, please reload!") end) end, 2)
-            else
-                print("You've got the latest version: v" .. server_version)
-            end
-        else
-            print("Something went wrong! Please manually update the script!")
-        end
-    else
-        print("Error downloading version info!")
-    end
+if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
 
-end
+local RequireI = Require("SourceLib")
+RequireI:Check()
 
 if AUTO_UPDATE then
-     CheckUpdate(SCRIPT_NAME, version, "raw.githubusercontent.com", "/cinkulol/bolscripts/master/NeXtGenAshe.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master/NeXtGenAshe.version")
+     SourceUpdater(SCRIPT_NAME, version, "raw.github.com", "/cinkulol/bolscripts/master"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master"..SCRIPT_NAME..".version"):CheckUpdate()
 end
-
 
 --hooks
 
