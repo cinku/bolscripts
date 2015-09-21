@@ -58,7 +58,7 @@ function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPat
 end
 
 if AUTO_UPDATE then
-     CheckUpdate(SCRIPT_NAME, version, "raw.githubusercontent.com", "/cinkulol/bolscripts/master/NeXtGenAshe.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master/"..SCRIPT_NAME..".version")
+     CheckUpdate(SCRIPT_NAME, version, "raw.githubusercontent.com", "/cinkulol/bolscripts/master/NeXtGenAshe.lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master/NeXtGenAshe.version")
 end
 
 
