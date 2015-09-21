@@ -27,7 +27,7 @@ function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPat
 	local file_version = getVersion(version)
 	local version_path = versionPath and versionPath .. "?rand="..math.random(1,10000)
 	local update_path = updatePath .. "?rand="..math.random(1,10000)
-	local update_url = "https://"..self.UPDATE_HOST..self.UPDATE_PATH
+	local update_url = "https://"..host..update_path
     local webResult = GetWebResult(host, version_path or update_path)
     if webResult then
         if version_path then
