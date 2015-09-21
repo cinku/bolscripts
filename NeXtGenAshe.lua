@@ -20,7 +20,7 @@ local spells =
 
 if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
 
-local RequireI = Require("SourceLib")
+local RequireI = require "SourceLib"
 RequireI:Check()
 
 if AUTO_UPDATE then
