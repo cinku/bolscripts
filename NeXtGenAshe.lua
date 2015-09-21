@@ -20,6 +20,13 @@ local spells =
 	R = { ready = false, mana = 0, range = 3000, delay = 0.25, width = 130, speed = 1600}
 }
 
+if FileExist(SOURCELIB_PATH) then
+	require("SourceLib")
+else
+    DONLOADING_SOURCELIB = true
+    DownloadFile(SOURCELIB_URL, SOURCELIB_PATH, function() print("Required libraries downloaded successfully, please reload") end)
+end
+
 if DOWNLOADING_SOURCELIB then print("Downloading required libraries, please wait...") return end
 
 local RequireI = Require("SourceLib")
