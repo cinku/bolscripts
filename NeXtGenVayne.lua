@@ -59,7 +59,7 @@ function OnTick()
 		end
 	end
 	if checkTick(1) and spells.Q.ready then
-		if config.rconfig.autoQR and TargetHaveBuff("vayneinquisition", myHero) then
+		if config.rconfig.autoQR and CountEnemyHeroInRange(1500) > 0 and CountEnemyHeroInRange(670) ~= 1 and TargetHaveBuff("vayneinquisition", myHero) then
 			CastSpell(_Q, dashPosition.x, dashPosition.z)
 		end
 		if isCombo() and DashCheck(dashPosition) and not config.qconfig.QafteraA then
@@ -126,7 +126,7 @@ end
 function disableAttacks()
 	if SX then
 		SxOrb:DisableAttacks()
-	elseif SAC then
+	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
 		_G.AutoCarry.MyHero:AttacksEnabled(false)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
@@ -136,7 +136,7 @@ end
 function enableAttacks()
 	if SX then
 		SxOrb:EnableAttacks()
-	elseif SAC then
+	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
 		_G.AutoCarry.MyHero:AttacksEnabled(true)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
@@ -182,7 +182,7 @@ function afterAttack()
 	local dashPosition = extend(mousePos, myHero.pos, spells.Q.range)
 	if not DashCheck(dashPosition) then return false end
 	local target = getTarget()
-	if spells.Q.ready and ValidTarget(target) and getStacks(target) > 0 and GetDistance(target, mousePos) < GetDistance(target) and CountEnemyHeroInRange(800, dashPosition) < 3 then
+	if spells.Q.ready and ValidTarget(target) and (getStacks(target) > 0 or TargetHaveBuff("vayneinquisition", myHero)) and GetDistance(target, mousePos) < GetDistance(target) and CountEnemyHeroInRange(800, dashPosition) < 3 then
 		CastSpell(_Q, dashPosition.x, dashPosition.z)
 	elseif spells.Q.ready and (isHarass() or isLaneClear()) and config.qconfig.farmQ then
 		minions:update()
@@ -368,9 +368,11 @@ end
 --[[variables/menus/drawings]]--
 
 function loadOrbwalker()
-	if _G.Reborn_Loaded ~= nil then
+	if _G.Reborn_Initialised then
 		SAC = true
-	elseif _G.MMA_IsLoaded then
+	elseif _G.Reborn_Loaded and not _G.Reborn_Initialised then
+		DelayAction(function() loadOrbwalker() end, 1)
+	elseif _G.MMA_Loaded ~= nil and _G.MMA_Loaded then
 		MMA = true
 	else
 		SX = true

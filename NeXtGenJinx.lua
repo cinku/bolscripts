@@ -479,9 +479,11 @@ function menu()
 end
 
 function loadOrbwalker()
-	if _G.Reborn_Loaded ~= nil then
+	if _G.Reborn_Initialised then
 		SAC = true
-	elseif _G.MMA_IsLoaded then
+	elseif _G.Reborn_Loaded and not _G.Reborn_Initialised then
+		DelayAction(function() loadOrbwalker() end, 1)
+	elseif _G.MMA_Loaded ~= nil and _G.MMA_Loaded then
 		MMA = true
 	else
 		SX = true
