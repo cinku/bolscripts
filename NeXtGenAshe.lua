@@ -18,33 +18,38 @@ local spells =
 	R = { ready = false, mana = 0, range = 3000, delay = 0.25, width = 130, speed = 1600}
 }
 
+function getVersion(version) 
+	return tonumber(string.match(version or "", "%d+%.?%d*")) 
+end
+	
 function CheckUpdate(scriptName, version, host, updatePath, filePath, versionPath)
-	local fileVersion = getVersion(version)
-	local serverVersion = nil
+	local server_version = nil
+	local file_version = getVersion(version)
+	local version_path = versionPath and versionPath .. "?rand="..math.random(1,10000)
 	local update_path = updatePath .. "?rand="..math.random(1,10000)
-	local update_url = "https://"..host..update_path
-    local webResult = GetWebResult(host, versionPath or update_path)
+	local update_url = "https://"..self.UPDATE_HOST..self.UPDATE_PATH
+    local webResult = GetWebResult(host, version_path or update_path)
     if webResult then
-        if versionPath then
-            serverVersion = webResult
+        if version_path then
+            server_version = webResult
         else
-            serverVersion = string.match(webResult, "%s*local%s+version%s+=%s+.*%d+%.%d+")
+            server_version = string.match(webResult, "%s*local%s+version%s+=%s+.*%d+%.%d+")
         end
-        if serverVersion then
-            serverVersion = getVersion(serverVersion)
-            if not serverVersion then
+        if server_version then
+            server_version = getVersion(server_version)
+            if not server_version then
                 print("SourceLib: Please contact the developer of the script \"" .. (GetCurrentEnv().FILE_NAME or "DerpScript") .. "\", since the auto updater returned an invalid version.")
                 return
             end
-            if fileVersion < serverVersion then
-                self.printMessage("New version available: v" .. serverVersion)
+            if file_version < server_version then
+                self.printMessage("New version available: v" .. server_version)
                 self.printMessage("Updating, please don't press F9")
                 DelayAction(function () DownloadFile(update_url, filePath, function () print("Successfully updated, please reload!") end) end, 2)
             else
-                print("You've got the latest version: v" .. serverVersion)
+                print("You've got the latest version: v" .. server_version)
             end
         else
-			print("Something went wrong! Please manually update the script!")
+            print("Something went wrong! Please manually update the script!")
         end
     else
         print("Error downloading version info!")
@@ -54,10 +59,6 @@ end
 
 if AUTO_UPDATE then
      CheckUpdate(SCRIPT_NAME, version, "raw.github.com", "/cinkulol/bolscripts/master"..SCRIPT_NAME..".lua", SCRIPT_PATH .. GetCurrentEnv().FILE_NAME, "/cinkulol/bolscripts/master"..SCRIPT_NAME..".version")
-end
-
-function getVersion(version) 
-	return tonumber(string.match(version or "", "%d+%.?%d*")) 
 end
 
 
