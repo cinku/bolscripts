@@ -8,6 +8,9 @@ local UPDATE_FILE_PATH = LIB_PATH.."NeXtGenAshe.lua"
 local UPDATE_FILE_PATH = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 local UPDATE_URL = "https://"..UPDATE_HOST..UPDATE_PATH
 
+function Say(text)
+  print("<font color=\"#FF0000\"><b>LonseViktor:</b></font> <font color=\"#FFFFFF\">" .. text .. "</font>")
+end
 if AUTOUPDATE then
   local ServerData = GetWebResult(UPDATE_HOST, "/cinkulol/bolscripts/master/NeXtGenAshe.version")
   if ServerData then
