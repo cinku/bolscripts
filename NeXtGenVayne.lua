@@ -32,9 +32,9 @@ function OnTick()
 	checks()
 	local dashPosition = extend(mousePos, myHero.pos, spells.Q.range)
 	beforeAttack()
-	if SAC and isAfterAttack() then
-		afterAttack()
-	end
+	--if SAC and isAfterAttack() then
+	--	afterAttack()
+	--end
 	if spells.E.ready then
 		for _, target in ipairs(enemies) do
 			if ValidTarget(target, spells.E.range) and config.econfig["useE"..target.charName] then
@@ -47,7 +47,7 @@ function OnTick()
 		end
 	end
 	if checkTick(0) then
-		if isCombo() and getBotrkSlot() ~= nil and myHero:CanUseSpell(getBotrkSlot()) == READY then
+		if getBotrkSlot() ~= nil and myHero:CanUseSpell(getBotrkSlot()) == READY then
 			local target = targetSelector(550, DAMAGE_PHYSICAL)
 			if ValidTarget(target) then
 				if myHero.health < myHero.maxHealth * 0.5 then
@@ -126,8 +126,8 @@ end
 function disableAttacks()
 	if SX then
 		SxOrb:DisableAttacks()
-	--elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
-	--	_G.AutoCarry.MyHero:AttacksEnabled(false)
+	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
+		_G.AutoCarry.MyHero:AttacksEnabled(false)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
 	end
@@ -136,8 +136,8 @@ end
 function enableAttacks()
 	if SX then
 		SxOrb:EnableAttacks()
-	--elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
-	--	_G.AutoCarry.MyHero:AttacksEnabled(true)
+	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
+		_G.AutoCarry.MyHero:AttacksEnabled(true)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
 	end
@@ -182,6 +182,9 @@ function afterAttack()
 	local dashPosition = extend(mousePos, myHero.pos, spells.Q.range)
 	if not DashCheck(dashPosition) then return false end
 	local target = getTarget()
+	if ValidTarget(target, spells.E.range) and config.econfig.ksE and getStacks(target) > 0 and (target.health < (10 + myHero:GetSpellData(_W).level * 10) + ((0.03 + (myHero:GetSpellData(_W).level * 0.01)) * target.maxHealth) + getDmg("E", target, myHero)) then
+		CastSpell(_E, target)
+	end
 	if spells.Q.ready and ValidTarget(target) and (getStacks(target) > 0 or TargetHaveBuff("vayneinquisition", myHero)) and GetDistance(target, mousePos) < GetDistance(target) and CountEnemyHeroInRange(800, dashPosition) < 3 then
 		CastSpell(_Q, dashPosition.x, dashPosition.z)
 	elseif spells.Q.ready and (isHarass() or isLaneClear()) and config.qconfig.farmQ then
@@ -254,7 +257,7 @@ end
 function DashCheck(dashPos)
 	for i=0, 300, 100 do
 		local ext = extend(myHero.pos, dashPos, spells.Q.range-i)
-		if IsWall(D3DXVECTOR3(ext.x, ext.y, ext.z)) and not UnderTurret(dashPos) then
+		if IsWall(D3DXVECTOR3(ext.x, ext.y, ext.z)) and (not UnderTurret(dashPos) or isCombo()) then
 			return false
 		end
 	end
@@ -262,13 +265,13 @@ function DashCheck(dashPos)
 end
 
 function CondemnCheck(from, target)
-	local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, 0.30, 1, spells.E.range, math.huge, myHero, false)
+	local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, 0.27, 1, spells.E.range, math.huge, myHero, false)
 	if HitChance < 2 or HitChance > 5 then
 			return false
 	end
 	local pushDistance = 0
 	if myHero.pos == from then
-		pushDistance = 490
+		pushDistance = 475
 	else
 		pushDistance = 400
 	end
@@ -371,12 +374,15 @@ function loadOrbwalker()
 	if _G.Reborn_Initialised then
 		SAC = true
 	elseif _G.Reborn_Loaded and not _G.Reborn_Initialised then
+		SAC = true
 		DelayAction(function() loadOrbwalker() end, 1)
 	elseif _G.MMA_Loaded ~= nil and _G.MMA_Loaded then
 		MMA = true
 	else
 		SX = true
-		require 'SxOrbWalk'
+		if FileExist(LIB_PATH .. "/SxOrbWalk.lua") then
+			require 'SxOrbWalk'
+		end
 	end
 	if not SAC and not SX and not MMA then
 		print ("This script requires SAC:R or SxOrb or MMA to work!")
@@ -413,6 +419,9 @@ function variables()
 	if MMA then
 		_G.MMA_RegisterCallback('AfterAttackCallbacks', afterAttack)
 	end
+	if SAC then
+		_G.AutoCarry.Plugins:RegisterOnAttacked(afterAttack)
+	end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen V</font><font color='#FFFFFF'>ayne Loaded with SxOrbWalker!</font>")
 	elseif SAC then
@@ -442,15 +451,16 @@ function menu()
 	for _, enemy in ipairs(enemies) do
 		config.econfig:addParam("useE"..enemy.charName, "Use E on "..enemy.charName, SCRIPT_PARAM_ONOFF, true)
 	end
+	config.econfig:addParam("ksE", "Killsteal with E", SCRIPT_PARAM_ONOFF, true)
 	config.econfig:addParam("manualE", "Key to manually cast E", SCRIPT_PARAM_ONKEYDOWN, false, string.byte("T"))
 	config:addSubMenu("Config R", "rconfig")
 	config.rconfig:addParam("autoR", "Auto R", SCRIPT_PARAM_ONOFF, true)
 	config.rconfig:addParam("blockR", "Block AA with R", SCRIPT_PARAM_ONOFF, true)
 	config.rconfig:addParam("autoQR", "Auto Q when R is active", SCRIPT_PARAM_ONOFF, true)
-	--[[if SX then
+	if SX then
 		config:addSubMenu("SxOrbWalker", "orbwalker")
 		SxOrb:LoadToMenu(config.orbwalker)
-	end]]
+	end
 	config:addTS(ts)
 	ts.name = "TargetSelector"
 end
