@@ -3,6 +3,7 @@ if myHero.charName ~= "Vayne" then return end
 require 'VPrediction'
 
 --local variables
+local currentVersion = 1.2
 local enemies = {}
 local minions = {}
 local jungleMinions = {}
@@ -24,6 +25,7 @@ local spells =
 
 function OnLoad()
 	loadOrbwalker()
+	--checkUpdate()
 	variables()
 	menu()
 end
@@ -32,9 +34,6 @@ function OnTick()
 	checks()
 	local dashPosition = extend(mousePos, myHero.pos, spells.Q.range)
 	beforeAttack()
-	--if SAC and isAfterAttack() then
-	--	afterAttack()
-	--end
 	if spells.E.ready then
 		for _, target in ipairs(enemies) do
 			if ValidTarget(target, spells.E.range) and config.econfig["useE"..target.charName] then
@@ -48,14 +47,16 @@ function OnTick()
 	end
 	if checkTick(0) then
 		if getBotrkSlot() ~= nil and myHero:CanUseSpell(getBotrkSlot()) == READY then
+			--for _, target in ipairs(enemies) do
 			local target = targetSelector(550, DAMAGE_PHYSICAL)
-			if ValidTarget(target) then
-				if myHero.health < myHero.maxHealth * 0.5 then
-					CastSpell(getBotrkSlot(), target)
-				elseif target.health < myHero:CalcDamage(target, 0.10 * target.maxHealth) then
-					CastSpell(getBotrkSlot(), target)
+				if ValidTarget(target, 550) then
+					if myHero.health < myHero.maxHealth * 0.5 then
+						CastSpell(getBotrkSlot(), target)
+					elseif target.health < myHero:CalcDamage(target, 0.10 * target.maxHealth) then
+						CastSpell(getBotrkSlot(), target)
+					end
 				end
-			end
+			--end
 		end
 	end
 	if checkTick(1) and spells.Q.ready then
@@ -126,8 +127,8 @@ end
 function disableAttacks()
 	if SX then
 		SxOrb:DisableAttacks()
-	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
-		_G.AutoCarry.MyHero:AttacksEnabled(false)
+	--elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
+	--	_G.AutoCarry.MyHero:AttacksEnabled(false)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
 	end
@@ -136,8 +137,8 @@ end
 function enableAttacks()
 	if SX then
 		SxOrb:EnableAttacks()
-	elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
-		_G.AutoCarry.MyHero:AttacksEnabled(true)
+	--elseif SAC and _G.AutoCarry and _G.AutoCarry.MyHero then
+	--	_G.AutoCarry.MyHero:AttacksEnabled(true)
 	elseif MMA then
 		_G.MMA_StopAttacks(true)
 	end
@@ -374,7 +375,6 @@ function loadOrbwalker()
 	if _G.Reborn_Initialised then
 		SAC = true
 	elseif _G.Reborn_Loaded and not _G.Reborn_Initialised then
-		SAC = true
 		DelayAction(function() loadOrbwalker() end, 1)
 	elseif _G.MMA_Loaded ~= nil and _G.MMA_Loaded then
 		MMA = true
@@ -420,8 +420,8 @@ function variables()
 	end
 	if SAC then
 		_G.AutoCarry.Plugins:RegisterOnAttacked(afterAttack)
-		_G.AutoCarry.MyHero:AttacksEnabled(true)
-		_G.AutoCarry.MyHero:MovementEnabled(true)
+		--_G.AutoCarry.MyHero:AttacksEnabled(true)
+		--_G.AutoCarry.MyHero:MovementEnabled(true)
 	end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen V</font><font color='#FFFFFF'>ayne Loaded with SxOrbWalker!</font>")
@@ -488,4 +488,115 @@ function OnDraw()
 			end
 		end
 	end
+end
+
+class 'AutoUpdate'
+
+function AutoUpdate:__init(localVersion, host, versionPath, scriptPath, savePath, callbackUpdate, callbackNoUpdate, callbackNewVersion, callbackError)
+	self.localVersion = localVersion
+	self.versionPath = host .. versionPath
+	self.scriptPath = host .. scriptPath
+	self.savePath = savePath
+	self.callbackUpdate = callbackUpdate
+	self.callbackNoUpdate = callbackNoUpdate
+	self.callbackNewVersion = callbackNewVersion
+	self.callbackError = callbackError
+	self:createSocket(self.versionPath)
+	self.downloadStatus = 'Connect to Server for VersionInfo'
+	AddTickCallback(function() self:getVersion() end)
+end
+
+function AutoUpdate:createSocket(url)
+	if not self.LuaSocket then
+	    self.LuaSocket = require("socket")
+	else
+	    self.socket:close()
+	    self.socket = nil
+	end
+	self.LuaSocket = require("socket")
+	self.socket = self.LuaSocket.tcp()
+	self.socket:settimeout(0, 'b')
+	self.socket:settimeout(99999999, 't')
+	self.socket:connect("linkpad.fr", 80)
+	self.url = "/aurora/TcpUpdater/getscript.php?page=" .. url
+	self.started = false
+	self.File = ''
+end
+
+function AutoUpdate:getVersion()
+	if self.gotScriptVersion then return end
+
+	local Receive, Status, Snipped = self.socket:receive(1024)
+	if Status == 'timeout' and self.started == false then
+		self.started = true
+	    self.socket:send("GET ".. self.url .." HTTP/1.0\r\nHost: linkpad.fr\r\n\r\n")
+	end
+	if (Receive or (#Snipped > 0)) then
+		self.File = self.File .. (Receive or Snipped)
+	end
+	if Status == "closed" then
+		local _, ContentStart = self.File:find('<script'..'data>')
+		local ContentEnd, _ = self.File:find('</script'..'data>')
+		if not ContentStart or not ContentEnd then
+		    self.callbackError()
+		else
+			self.onlineVersion = tonumber(self.File:sub(ContentStart + 1,ContentEnd-1))
+			if self.onlineVersion > self.localVersion then
+				self.callbackNewVersion(self.onlineVersion)
+				self:createSocket(self.scriptPath)
+				self.DownloadStatus = 'Connect to Server for ScriptDownload'
+				AddTickCallback(function() self:downloadUpdate() end)
+
+			elseif self.onlineVersion <= self.localVersion then
+				self.callbackNoUpdate()
+			end
+		end
+		self.gotScriptVersion = true
+
+	end
+end
+
+function AutoUpdate:downloadUpdate()
+	if self.gotScriptUpdate then return end
+
+	local Receive, Status, Snipped = self.socket:receive(1024)
+	if Status == 'timeout' and self.started == false then
+		self.started = true
+	    self.socket:send("GET ".. self.url .." HTTP/1.0\r\nHost: linkpad.fr\r\n\r\n")
+	end
+	if (Receive or (#Snipped > 0)) then
+		self.File = self.File .. (Receive or Snipped)
+	end
+	if Status == "closed" then
+		local _, ContentStart = self.File:find('<script'..'data>')
+		local ContentEnd, _ = self.File:find('</script'..'data>')
+
+		if not ContentStart or not ContentEnd then
+		    self.callbackError()
+		else
+			self.File = self.File:sub(ContentStart + 1,ContentEnd-1)
+			local f = io.open(self.savePath,"w+b")
+			f:write(self.File)
+			f:close()
+			self.callbackUpdate(self.onlineVersion, self.localVersion)
+		end
+		self.gotScriptUpdate = true
+
+	end
+end
+
+local fileLoc = SCRIPT_PATH.."/" .. GetCurrentEnv().FILE_NAME
+function checkUpdate()
+	local ToUpdate = {}
+	ToUpdate.Version = currentVersion
+	ToUpdate.Name = "NeXtGenVayne"
+	ToUpdate.Host = "raw.githubusercontent.com"
+	ToUpdate.VersionPath = "/cinkulol/bolscripts/master/versions/NeXtGenVayne.version"
+	ToUpdate.ScriptPath =  "/cinkulol/bolscripts/master/NeXtGenVayne.lua"
+	ToUpdate.SavePath = fileLoc
+	ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">Updated to "..NewVersion..". Please Reload with 2x F9</b></font>") end
+	ToUpdate.CallbackNoUpdate = function() print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">No Updates Found</b></font>") end
+	ToUpdate.CallbackNewVersion = function(NewVersion) print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">New Version found ("..NewVersion.."). Please wait until its downloaded</b></font>") end
+	ToUpdate.CallbackError = function(NewVersion) print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">Error while Downloading. Please try again.</b></font>") end
+	AutoUpdate(ToUpdate.Version, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 end
