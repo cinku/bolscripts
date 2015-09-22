@@ -594,9 +594,9 @@ function checkUpdate()
 	ToUpdate.VersionPath = "/cinkulol/bolscripts/master/versions/NeXtGenVayne.version"
 	ToUpdate.ScriptPath =  "/cinkulol/bolscripts/master/NeXtGenVayne.lua"
 	ToUpdate.SavePath = fileLoc
-	ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">Updated to "..NewVersion..". Please Reload with 2x F9</b></font>") end
-	ToUpdate.CallbackNoUpdate = function() print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">No Updates Found</b></font>") end
-	ToUpdate.CallbackNewVersion = function(NewVersion) print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">New Version found ("..NewVersion.."). Please wait until its downloaded</b></font>") end
-	ToUpdate.CallbackError = function(NewVersion) print("<font color=\"#FE2E64\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FA58D0\">Error while Downloading. Please try again.</b></font>") end
+	ToUpdate.CallbackUpdate = function(NewVersion,OldVersion) print("<font color=\"#0084FF\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FFFFFF\">Updated to "..NewVersion..". Please Reload with 2x F9</b></font>") end
+	ToUpdate.CallbackNoUpdate = function() print("<font color=\"#0084FF\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FFFFFF\">No Updates Found</b></font>") end
+	ToUpdate.CallbackNewVersion = function(NewVersion) print("<font color=\"#0084FF\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FFFFFF\">New Version found ("..NewVersion.."). Please wait until its downloaded</b></font>") end
+	ToUpdate.CallbackError = function(NewVersion) print("<font color=\"#0084FF\"><b>[" .. ToUpdate.Name .. "] AutoUpdater - </b></font> <font color=\"#FFFFFF\">Error while Downloading. Please try again.</b></font>") end
 	AutoUpdate(ToUpdate.Version, ToUpdate.Host, ToUpdate.VersionPath, ToUpdate.ScriptPath, ToUpdate.SavePath, ToUpdate.CallbackUpdate,ToUpdate.CallbackNoUpdate, ToUpdate.CallbackNewVersion,ToUpdate.CallbackError)
 end
