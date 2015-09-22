@@ -25,7 +25,7 @@ local spells =
 
 function OnLoad()
 	loadOrbwalker()
-	--checkUpdate()
+	checkUpdate()
 	variables()
 	menu()
 end
