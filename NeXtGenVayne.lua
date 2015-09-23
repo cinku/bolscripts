@@ -44,14 +44,14 @@ function OnTick()
 		end
 	end
 	if checkTick(0) then
-		if getBotrkSlot() ~= nil and myHero:CanUseSpell(getBotrkSlot()) == READY then
+		if GetSlotItem(3153) ~= nil and myHero:CanUseSpell(GetSlotItem(3153)) == READY then
 			--for _, target in ipairs(enemies) do
 			local target = targetSelector(550, DAMAGE_PHYSICAL)
 				if ValidTarget(target, 550) then
 					if myHero.health < myHero.maxHealth * 0.5 then
-						CastSpell(getBotrkSlot(), target)
+						CastSpell(GetSlotItem(3153), target)
 					elseif target.health < myHero:CalcDamage(target, 0.10 * target.maxHealth) then
-						CastSpell(getBotrkSlot(), target)
+						CastSpell(GetSlotItem(3153), target)
 					end
 				end
 			--end
@@ -214,11 +214,17 @@ function isAfterAttack()
 	return false
 end
 
-function getBotrkSlot()
-	local name	= "itemswordoffeastandfamine"
+function GetSlotItem(id, unit)
+	unit = unit or myHero
 
+	if (not ItemNames[id]) then
+		return ___GetInventorySlotItem(id, unit)
+	end
+
+	local name  = ItemNames[id]
+  
 	for slot = ITEM_1, ITEM_7 do
-		local item = myHero:GetSpellData(slot).name
+		local item = unit:GetSpellData(slot).name
 		if ((#item > 0) and (item:lower() == name:lower())) then
 			return slot
 		end
@@ -388,6 +394,9 @@ function loadOrbwalker()
 end
 
 function loadItems()
+		ItemNames = {
+	[3153]        = "ItemSwordOfFeastAndFamine"}
+	
 	_G.ITEM_1				= 06
 	_G.ITEM_2				= 07
 	_G.ITEM_3				= 08
