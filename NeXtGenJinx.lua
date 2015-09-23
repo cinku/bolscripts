@@ -224,7 +224,7 @@ end
 function RLogic()
 	if isWindingUp() == true then return end
 	for _, target in ipairs(enemies) do
-		if ValidTarget(target, Spells.R.range) and (GetInGameTimer() - Wcast > 1) then
+		if ValidTarget(target, Spells.R.range) and validUltTarget(target) and (GetInGameTimer() - Wcast > 1) then
 			local predictedHealth = target.health + target.hpRegen * 2
 			local Rdmg = getDmg("R", target, myHero)
 			if Rdmg > predictedHealth then
@@ -368,7 +368,7 @@ function farmWithQ()
 end
 
 function validUltTarget(tar)
-	if tar.bInvulnerable or tar.bPhysImune or tar.bMagicImune or tar.dead ~= true then
+	if tar.bInvulnerable or tar.bPhysImune or tar.bMagicImune or tar.dead ~= true or TargetHaveBuff("sionpassivezombie", tar) then
 		return false
 	end
 	return true
