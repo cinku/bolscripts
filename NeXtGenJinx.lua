@@ -368,7 +368,7 @@ function farmWithQ()
 end
 
 function validUltTarget(tar)
-	if tar.bInvulnerable or tar.bPhysImune or tar.bMagicImune or tar.dead ~= true or TargetHaveBuff("sionpassivezombie", tar) then
+	if tar.dead or TargetHaveBuff("sionpassivezombie", tar) then
 		return false
 	end
 	return true
