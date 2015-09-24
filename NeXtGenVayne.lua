@@ -16,7 +16,7 @@ local startAttackTime = 0
 local spells = 
 {
 	Q = { ready = false, range = 300 },
-	E = { ready = false, range = 670, delay = 0.27, speed = 3500},
+	E = { ready = false, range = 670, delay = 0.25, speed = 3500},
 	R = { ready = false, range = 3000}
 }
 
@@ -48,7 +48,7 @@ function OnTick()
 			--for _, target in ipairs(enemies) do
 			local target = targetSelector(550, DAMAGE_PHYSICAL)
 				if ValidTarget(target, 550) then
-					if myHero.health < myHero.maxHealth * 0.5 then
+					if myHero.health < myHero.maxHealth * (config.botrkP/100) then
 						CastSpell(GetSlotItem(3153), target)
 					elseif target.health < myHero:CalcDamage(target, 0.10 * target.maxHealth) then
 						CastSpell(GetSlotItem(3153), target)
@@ -90,7 +90,7 @@ function OnTick()
 			CastSpell(_E, bestTarget)
 		end
 	end
-	if checkTick(3) and spells.R.ready then
+	if checkTick(3) and spells.R.ready and config.rconfig.autoR then
 		if CountEnemyHeroInRange(700) > 2 then
 			CastSpell(_R)
 		elseif isCombo() and CountEnemyHeroInRange(600) > 1 then
@@ -270,7 +270,7 @@ function DashCheck(dashPos)
 end
 
 function CondemnCheck(from, target)
-	local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, 0.27, 1, spells.E.range, math.huge, myHero, false)
+	local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, 0.25, 1, spells.E.range, 3000, myHero, false)
 	if HitChance < 2 or HitChance > 5 then
 			return false
 	end
@@ -445,6 +445,7 @@ function menu()
 	config.draw:addParam("onlyRdy", "Draw spells range only if ready", SCRIPT_PARAM_ONOFF, true)
 	config.draw:addParam("qRange", "Draw Q range circle", SCRIPT_PARAM_ONOFF, true)
 	config.draw:addParam("ePush", "Draw E push position", SCRIPT_PARAM_ONOFF, true)
+	config:addParam("botrkP", "Botrk hp %", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
 	config:addSubMenu("Config Q", "qconfig")
 	config.qconfig:addParam("farmQ", "Farm with Q help", SCRIPT_PARAM_ONOFF, true)
 	config.qconfig:addParam("QE", "Use Q+E combo", SCRIPT_PARAM_ONOFF, true)
