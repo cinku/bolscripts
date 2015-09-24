@@ -57,7 +57,7 @@ function OnTick()
 		end
 	end
 	if checkTick(3) then
-		if Spells.W.ready then
+		if Spells.W.ready and config.wconfig.autoW then
 			WLogic()
 		end
 	end
@@ -108,7 +108,7 @@ end
 function QBefore()
 	local target = targetSelector(bonusRange() + 60, DAMAGE_PHYSICAL)
 	if Spells.Q.ready and fishBoneActive and ValidTarget(target) then
-		if isCombo() and getRealDistance(target) < getRealPowPowRange(target) and (myHero.mana < (Spells.R.mana + Spells.W.mana + 20) or myHero:CalcDamage(target, myHero.totalDamage) * 2 < target.health) then
+		if isCombo() and getRealDistance(target) < getRealPowPowRange(target) and (myHero.mana < (Spells.R.mana + Spells.W.mana + 20) or myHero:CalcDamage(target, myHero.totalDamage) * 3 < target.health) then
 			CastSpell(_Q)
 		elseif farm and (getRealDistance(target) > bonusRange() or getRealDistance(target) < getRealPowPowRange(target) or myHero.mana < (Spells.R.mana + Spells.E.mana + (Spells.W.mana*2))) then
 			CastSpell(_Q)
@@ -222,7 +222,7 @@ function ELogic()
 end
 
 function RLogic()
-	if isWindingUp() == true then return end
+	if isWindingUp() == true and config.rconfig.autoR ~= true then return end
 	for _, target in ipairs(enemies) do
 		if ValidTarget(target, Spells.R.range) and validUltTarget(target) and (GetInGameTimer() - Wcast > 1) then
 			local predictedHealth = target.health + target.hpRegen * 2
@@ -379,7 +379,7 @@ function getHitBox(unit)
 end
 
 function bonusRange()
-	return 620 + getHitBox(myHero) + 25 * myHero:GetSpellData(_Q).level
+	return 670 + getHitBox(myHero) + 25 * myHero:GetSpellData(_Q).level
 end
 
 function getRealDistance(tar)
@@ -387,7 +387,7 @@ function getRealDistance(tar)
 end
 
 function getRealPowPowRange(tar)
-	return 630 + getHitBox(myHero) + getHitBox(tar)
+	return 650 + getHitBox(myHero) + getHitBox(tar)
 end
 
 function isInAutoAttackRange(tar)
@@ -453,6 +453,7 @@ function menu()
 	config.draw:addParam("eRange", "Draw E range circle", SCRIPT_PARAM_ONOFF, false)
 	config.draw:addParam("rRange", "Draw R range circle", SCRIPT_PARAM_ONOFF, false)
 	config:addSubMenu("Config W", "wconfig")
+	config.wconfig:addParam("autoW", "Auto W", SCRIPT_PARAM_ONOFF, true)
 	config.wconfig:addParam("ksW", "Kill steal with W", SCRIPT_PARAM_ONOFF, true)
 	for _, enemy in pairs(enemies) do
 		config.wconfig:addParam("haras"..enemy.charName, "Harass"..enemy.charName, SCRIPT_PARAM_ONOFF, true)
