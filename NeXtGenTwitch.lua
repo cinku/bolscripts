@@ -64,6 +64,19 @@ function OnProcessAttack(unit, spell)
 	end
 end
 
+function OnProcessSpell(unit, spell)
+	if not spells.E.ready and unit.team == player.team and unit.isAI and not ValidTarget(unit) then
+		return
+	end
+	local spelltype, casttype = getSpellType(unit, spell.name)
+	if spell.target ~= nil and spell.target.networkID == myHero.networkID and unit.isMe ~= true then
+		local dmg = getDmg(spelltype, spell.target, unit)
+		if myHero.health - dmg < CountEnemyHeroInRange(600) * myHero.level * 10 then
+			CastSpell(_E)
+		end
+	end
+end
+
 --[[spells logic]]--
 
 function QLogic()
@@ -93,6 +106,8 @@ function WLogic()
 		local CastPosition, HitChance, Position = VP:GetCircularCastPosition(target, spells.W.delay, spells.W.width, spells.W.range, spells.W.speed, myHero, false)
 		if HitChance < 2 and HitChance > 5 then return end
 		if isCombo() and myHero.mana > (spells.W.mana + spells.R.mana + spells.E.mana) and (myHero:CalcDamage(target, myHero.totalDamage) * 2 < target.health or not isInAutoAttackRange(target)) then
+			CastSpell(_W, CastPosition.x, CastPosition.z)
+		elseif isHarass() and config.wconfig.autoWinH and myHero.mana > (spells.W.mana + spells.R.mana + spells.E.mana) and CountEnemyHeroInRange(CastPosition) > 1 then
 			CastSpell(_W, CastPosition.x, CastPosition.z)
 		elseif (isCombo() or (isHarass() or isLaneClear())) and myHero.mana > (spells.W.mana + spells.R.mana + spells.E.mana) then
 			for _, enemy in ipairs(enemies) do
@@ -171,7 +186,7 @@ function calculateEDmg(tar)
 	if tar.isAI ~= true then
 		dmg = dmg - tar.hpRegen
 	else
-		return dmg - 90
+		return dmg - 80
 	end
 	return myHero:CalcDamage(tar, dmg)
 end
@@ -362,7 +377,7 @@ function variables()
 	ts = TargetSelector(TARGET_LOW_HP,1000)
 	VP = VPrediction()
 	enemies = GetEnemyHeroes()
-	jungleMinions = minionManager(MINION_JUNGLE, spells.E.range, myHero, MINION_SORT_HEALTH_ASC)
+	jungleMinions = minionManager(MINION_JUNGLE, spells.E.range, myHero, MINION_SORT_MAXHEALTH_DEC)
 	for _, enemy in ipairs(enemies) do
 		PassiveStacks[enemy.networkID] = 0
 		PassiveApply[enemy.networkID] = 0
@@ -390,6 +405,7 @@ function menu()
 	config.qconfig:addParam("countQ", "Auto Q when X enemies coming", SCRIPT_PARAM_SLICE, 3, 0, 5, 0)
 	config:addSubMenu("Config W", "wconfig")
 	config.wconfig:addParam("autoW", "Auto W", SCRIPT_PARAM_ONOFF, true)
+	config.wconfig:addParam("autoWinH", "Auto W in harass", SCRIPT_PARAM_ONOFF, true)
 	config:addSubMenu("Config E", "econfig")
 	config.econfig:addParam("ksE", "Killsteal with E", SCRIPT_PARAM_ONOFF, true)
 	config.econfig:addParam("countE", "Auto E when X stacks", SCRIPT_PARAM_SLICE, 6, 0, 6, 0)
@@ -443,13 +459,13 @@ function OnDraw()
 	end
 	if config.draw.notification then
 		if TargetHaveBuff("TwitchHideInShadows", myHero) then
-			DrawText3D("Q STEALTH", myHero.x-150, myHero.y-150, myHero.z, 32, RGB(0,255,0), center)
+			DrawText3D("Q STEALTH", myHero.x-130, myHero.y-150, myHero.z, 32, RGB(0,255,0), center)
 		end
 		if TargetHaveBuff("twitchhideinshadowsbuff", myHero) then
-			DrawText3D("Q BUFF", myHero.x-100, myHero.y-150, myHero.z, 32, RGB(0,255,0), center)
+			DrawText3D("Q BUFF", myHero.x-110, myHero.y-250, myHero.z, 32, RGB(0,255,0), center)
 		end
 		if TargetHaveBuff("TwitchFullAutomatic", myHero) then
-			DrawText3D("R ACTIVE", myHero.x-110, myHero.y-250, myHero.z, 32, RGB(255,0,0), center)
+			DrawText3D("R ACTIVE", myHero.x-130, myHero.y-350, myHero.z, 32, RGB(255,0,0), center)
 		end
 	end
 end
