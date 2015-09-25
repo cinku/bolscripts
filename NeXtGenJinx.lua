@@ -40,6 +40,9 @@ end
 
 function OnTick()
 	check()
+	if SAC then
+		QBefore()
+	end
 	if checkTick(0) then
 		if config.rconfig.rconfigjungle.Rjungle and Spells.R.ready then JungleStealer() end
 		if GetInGameTimer() - teleporttime < 4 and teleportpos ~= nil and config.econfig.telE then
@@ -507,7 +510,7 @@ function variables()
 	jungleMinions = minionManager(MINION_JUNGLE, math.huge, myHero, MINION_SORT_MAXHEALTH_DES)
 	if SX then SxOrb:RegisterBeforeAttackCallback(QBefore) end
 	if MMA then _G.MMA_RegisterCallback('BeforeAttackCallbacks', QBefore) end
-	if SAC then _G.AutoCarry.Plugins:RegisterPreAttack(QBefore) end
+	--if SAC then _G.AutoCarry.Plugins:RegisterPreAttack(QBefore) end
 	if SX then
 		PrintChat ("<font color='#0084FF'>NeXtGen J</font><font color='#FFFFFF'>inx Loaded with SxOrbWalker!</font>")
 	elseif SAC then
