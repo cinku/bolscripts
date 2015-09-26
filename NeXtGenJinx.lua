@@ -72,7 +72,7 @@ function OnTick()
 				CastSpell(_R, CastPosition.x, CastPosition.z)
 			end
 		end
-		if Spells.R.ready then
+		if Spells.R.ready and config.rconfig.autoR then
 			RLogic()
 		end
 	end
@@ -225,16 +225,16 @@ function ELogic()
 end
 
 function RLogic()
-	if isWindingUp() == true and config.rconfig.autoR ~= true then return end
+	if isWindingUp() == true then return end
 	for _, target in ipairs(enemies) do
 		if ValidTarget(target, Spells.R.range) and validUltTarget(target) and (GetInGameTimer() - Wcast > 1) then
 			local predictedHealth = target.health + target.hpRegen * 2
 			local Rdmg = getDmg("R", target, myHero)
 			if Rdmg > predictedHealth then
 				local CastPosition, HitChance, Position = VP:GetLineCastPosition(target, Spells.R.delay, Spells.R.width, Spells.R.range, Spells.R.speed, myHero, false)
-				if CastPosition and HitChance >= 2 and getRealDistance(target) > (bonusRange() + 30 + getHitBox(target)) and countAllyInRangeOfUnit(600, target) == 0 and CountEnemyHeroInRange(400) == 0 and not checkCollisionWithHeroes(target, CastPosition) and not isFacing(target) then
+				if CastPosition and (HitChance >= 2 and HitChance <= 5) and getRealDistance(target) > (bonusRange() + 300 + getHitBox(target)) and countAllyInRangeOfUnit(600, target) == 0 and CountEnemyHeroInRange(400) == 0 and not checkCollisionWithHeroes(target, CastPosition) and isFacing(target) ~= true then
 					CastSpell(_R, CastPosition.x, CastPosition.z)
-				elseif CastPosition and HitChance >= 2 and CountEnemyHeroInRange(200, target) > 2 and getRealDistance(target) > (bonusRange() + 200 + getHitBox(target)) then
+				elseif CastPosition and (HitChance >= 2 and HitChance <= 5) and CountEnemyHeroInRange(200, target) > 2 and getRealDistance(target) > (bonusRange() + 200 + getHitBox(target)) then
 					CastSpell(_R, CastPosition.x, CastPosition.z)
 				end
 			end
