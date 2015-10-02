@@ -51,9 +51,10 @@ end
 
 function OnTick()
 	if config.cleanse.cleanse then Cleanse() end
-	if isAfterAttack() then
-		afterAttack()
-	elseif not isWindingUp() then
+	--if isAfterAttack() then
+	--	afterAttack()
+	--else
+	if not isWindingUp() then
 		beforeAttack()
 	end
 	if config.pots then	Potions() end	
@@ -76,7 +77,9 @@ function OnProcessAttack(unit, spell)
 		startAttackTime = GetInGameTimer()
 		windUpTime = spell.windUpTime
 	end
-	Use(unit, spell)
+	if unit.isAI == false then
+		Use(unit, spell)
+	end
 end
 
 function isWindingUp()
@@ -87,11 +90,11 @@ function isWindingUp()
 end
 
 function afterAttack()
-	if config.offensive.hydra.hydraTitanic and isCombo() and ItemReady(3748) and ValidTarget(targetSelector(myHero.range, DAMAGE_PHYSICAL)) then
+	--[[if config.offensive.hydra.hydraTitanic and isCombo() and ItemReady(3748) and ValidTarget(targetSelector(myHero.range, DAMAGE_PHYSICAL)) then
 		CastSpell(GetSlotItem(3748))
 		startAttackTime = 0
 		windUpTime = 0
-	end
+	end]]
 end
 
 function beforeAttack()
@@ -217,7 +220,9 @@ function OnProcessSpell(unit, spell)
 			end
 		end
 	end
-	Use(unit, spell)
+	if unit.isAI == false then
+		Use(unit, spell)
+	end
 end
 
 function getPassiveTime(tar, buffName)
