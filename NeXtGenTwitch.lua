@@ -65,7 +65,7 @@ function OnProcessAttack(unit, spell)
 end
 
 function OnProcessSpell(unit, spell)
-	if not spells.E.ready and unit.team == player.team and unit.isAI and not ValidTarget(unit) then
+	if unit.isAI or (not spells.E.ready and unit.team == player.team and not ValidTarget(unit)) then
 		return
 	end
 	local spelltype, casttype = getSpellType(unit, spell.name)
@@ -245,7 +245,10 @@ end
 
 function OnUpdateBuff(unit, buff, stacks)
 	if buff.name == 'twitchdeadlyvenom' then
-		PassiveStacks[unit.networkID] = stacks
+		--PassiveStacks[unit.networkID] = stacks
+		if PassiveStacks[unit.networkID] and PassiveStacks[unit.networkID] < 6 then
+			PassiveStacks[unit.networkID] = PassiveStacks[unit.networkID] + 1
+		end
 		PassiveApply[unit.networkID] = GetGameTimer() + 6
 	end
 end
