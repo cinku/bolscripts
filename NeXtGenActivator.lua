@@ -76,6 +76,7 @@ function OnProcessAttack(unit, spell)
 		startAttackTime = GetInGameTimer()
 		windUpTime = spell.windUpTime
 	end
+	Use(unit, spell)
 end
 
 function isWindingUp()
@@ -109,10 +110,6 @@ function beforeAttack()
 			CastSpell(GetSlotItem(idMur))
 		end
 	end
-end
-
-function OnProcessAttack(unit, spell)
-	Use(unit, spell)
 end
 
 function Use(unit, spell)
