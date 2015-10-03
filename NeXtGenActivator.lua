@@ -180,7 +180,7 @@ function Use(unit, spell)
 					end
 				end
 				if config.defensive.fotm and GetSlotItem(3401) ~= nil and GetItemReady(3401) and GetDistance(ally) < items[3401].range then
-					if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 10) then
+					if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 15) then
 						CastSpell(GetSlotItem(3401), ally)
 					elseif (ally.health - incomingDmg) < (ally.level * 10) then
 						CastSpell(GetSlotItem(3401), ally)
