@@ -82,6 +82,23 @@ function OnProcessAttack(unit, spell)
 	end
 end
 
+function OnProcessSpell(unit, spell)
+	if unit.isMe then
+		if GetSlotItem(3142) ~= nil and ItemReady(3142) and config.offensive.youmus.youmusR then
+			local spelltype = getSpellType(unit, spell.name)
+			if spelltype == "R" and (myHero.charName == "Twitch" or myHero.charName == "Lucian") then
+				CastSpell(GetSlotItem(3142))
+			end
+			if spelltype == "Q" and myHero.charName == "Ashe" then
+				CastSpell(GetSlotItem(3142))
+			end
+		end
+	end
+	if unit.isAI == false then
+		Use(unit, spell)
+	end
+end
+
 function isWindingUp()
 	if windUpTime > GetInGameTimer() - startAttackTime then
 		return true
@@ -90,11 +107,11 @@ function isWindingUp()
 end
 
 function afterAttack()
-	--[[if config.offensive.hydra.hydraTitanic and isCombo() and ItemReady(3748) and ValidTarget(targetSelector(myHero.range, DAMAGE_PHYSICAL)) then
+	if config.offensive.hydra.hydraTitanic and isCombo() and GetSlotItem(3748) ~= nil and ItemReady(3748) and ValidTarget(targetSelector(myHero.range, DAMAGE_PHYSICAL)) then
 		CastSpell(GetSlotItem(3748))
 		startAttackTime = 0
 		windUpTime = 0
-	end]]
+	end
 end
 
 function beforeAttack()
@@ -119,9 +136,10 @@ function Use(unit, spell)
 	if unit.team == myHero.team then return end
 	if not ItemReady(3190) and not ItemReady(3401) and not ItemReady(3040) and not ItemReady(3157) and not CanUseSummoner(summonerSpells.barrier) and not CanUseSummoner(summonerSpells.heal) and not CanUseSummoner(summonerSpells.exhaust) then return end
 	if GetDistance(unit) > 1600 then return end
+	local spelltype = getSpellType(unit, spell.name)
+	if not (spelltype == "Q" or spelltype == "W" or spelltype == "E" or spelltype == "R" or spelltype == "P" or spelltype == "QM" or spelltype == "WM" or spelltype == "EM" or spelltype == "BAttack" or spelltype == "CAttack") then return end
 	for _, ally in ipairs(allies) do
-		if ally.dead == false and ally.valid ~= false and GetDistance(ally) < 700 and ally.health < (ally.maxHealth * 0.5) then
-			local spelltype = getSpellType(unit, spell.name)
+		if ally.dead == false and ally.valid ~= false and GetDistance(ally) < 700 then
 			incomingDmg = 0
 			if spell.target ~= nil and spell.target.networkID == ally.networkID then
 				if spelltype == "BAttack" then
@@ -134,7 +152,7 @@ function Use(unit, spell)
 			else
 				local area = GetDistance(spell.endPos, ally) * Vector(spell.endPos - ally.pos):normalized() + ally.pos
 				if GetDistance(ally, area) < (ally.boundingRadius / 2) then
-					incomingDmg = incomingDmg + getDmg(spelltype, spell.target, unit)
+					incomingDmg = incomingDmg + getDmg(spelltype, ally, unit)
 				else
 					incomingDmg = 0
 				end
@@ -148,20 +166,20 @@ function Use(unit, spell)
 				if CanUseSummoner(summonerSpells.heal) and config.summoners.heal.heal then
 					if config.summoners.heal.healAlly then
 						if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 40) then
-							CastSpell(summonerSpells.heal, ally)
+							CastSpell(summonerSpells.heal)
 						elseif (ally.health - incomingDmg) < (ally.level * 10) then
-							CastSpell(summonerSpells.heal, ally)
+							CastSpell(summonerSpells.heal)
 						end
 					end
 				end
-				if config.defensive.solari and ItemReady(3190) and GetDistance(ally) < items[3190].range then
+				if config.defensive.solari and GetSlotItem(3190) ~= nil and ItemReady(3190) and GetDistance(ally) < items[3190].range then
 					if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 40) then
 						CastSpell(GetSlotItem(3190))
 					elseif (ally.health - incomingDmg) < (ally.level * 10) then
 						CastSpell(GetSlotItem(3190))
 					end
 				end
-				if config.defensive.fotm and ItemReady(3401) and GetDistance(ally) < items[3401].range then
+				if config.defensive.fotm and GetSlotItem(3401) ~= nil and GetItemReady(3401) and GetDistance(ally) < items[3401].range then
 					if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 10) then
 						CastSpell(GetSlotItem(3401), ally)
 					elseif (ally.health - incomingDmg) < (ally.level * 10) then
@@ -179,7 +197,7 @@ function Use(unit, spell)
 						end
 					end
 					if config.defensive.seraphs then
-						if ItemReady(3040) then
+						if GetSlotItem(3040) ~= nil and ItemReady(3040) then
 							local seraphAmount = myHero.level * 20
 							if incomingDmg > seraphAmount and myHero.health < myHero.maxHealth * 0.5 then
 								CastSpell(GetSlotItem(3040))
@@ -191,7 +209,7 @@ function Use(unit, spell)
 						end
 					end
 					if config.defensive.zhonyas then
-						if ItemReady(3157) then
+						if GetSlotItem(3157) ~= nil and ItemReady(3157) then
 							local zhonyaAmount = 95 + myHero.level * 20
 							if incomingDmg > zhonyaAmount and myHero.health < myHero.maxHealth * 0.5 then
 								CastSpell(GetSlotItem(3157))
@@ -205,23 +223,6 @@ function Use(unit, spell)
 				end
 			end
 		end
-	end
-end
-
-function OnProcessSpell(unit, spell)
-	if unit.isMe then
-		if ItemReady(3142) and config.offensive.youmus.youmusR then
-			local spelltype = getSpellType(unit, spell.name)
-			if spelltype == "R" and (myHero.charName == "Twitch" or myHero.charName == "Lucian") then
-				CastSpell(GetSlotItem(3142))
-			end
-			if spelltype == "Q" and myHero.charName == "Ashe" then
-				CastSpell(GetSlotItem(3142))
-			end
-		end
-	end
-	if unit.isAI == false then
-		Use(unit, spell)
 	end
 end
 
@@ -243,10 +244,10 @@ function getPassiveTime(tar, buffName)
 end
 
 function UseZhonyas()
-	if config.defensive.zhonyas and ItemReady(3157) then
+	if GetSlotItem(3157) ~= nil and config.defensive.zhonyas and ItemReady(3157) then
 		local timer = 2
-		if TargetHaveBuff("zedulttargetmark") then
-			timer = getPassiveTimer(myHero, "zedulttargetmark")
+		if TargetHaveBuff("zedrdeathmark") then
+			timer = getPassiveTimer(myHero, "zedrdeathmark")
 		end
 		if TargetHaveBuff("FizzMarinerDoom") then
 			timer = getPassiveTimer(myHero, "FizzMarinerDoom")
@@ -300,7 +301,7 @@ function Potions()
 end
 
 function UseRanduin()
-	if config.defensive.randuin and ItemReady(3143) then
+	if GetSlotItem(3143) ~= nil and config.defensive.randuin and ItemReady(3143) then
 		if CountEnemyHeroInRange(items[3143].range) > 0 then
 			CastSpell(GetSlotItem(3143))
 		end
@@ -308,7 +309,7 @@ function UseRanduin()
 end
 
 function UseOffensive()
-	if ItemReady(3153) and config.offensive.botrk.botrk then
+	if GetSlotItem(3153) ~= nil and ItemReady(3153) and config.offensive.botrk.botrk then
 		local target = targetSelector(items[3153].range, DAMAGE_PHYSICAL)
 		if ValidTarget(target) then
 			if config.offensive.botrk.botrkKS and target.health < myHero:CalcDamage(target, 0.10 * target.maxHealth) then
@@ -322,7 +323,7 @@ function UseOffensive()
 			end
 		end
 	end
-	if ItemReady(3146) and config.offensive.hextech.hextech then
+	if GetSlotItem(3146) ~= nil and ItemReady(3146) and config.offensive.hextech.hextech then
 		local target = targetSelector(items[3146].range, DAMAGE_MAGICAL)
 		if ValidTarget(target) then
 			if config.offensive.hextech.hextechKS and target.health < myHero:CalcDamage(target, 150 + (myHero.ap * 0.4)) then
@@ -333,7 +334,7 @@ function UseOffensive()
 			end
 		end
 	end
-	if isCombo() and ItemReady(3092) and config.offensive.frostqueen.frostqueen then
+	if isCombo() and GetSlotItem(3092) ~= nil and ItemReady(3092) and config.offensive.frostqueen.frostqueen then
 		local target = targetSelector(items[3092].range, DAMAGE_MAGICAL)
 		if ValidTarget(target) then
 			local CastPosition, HitChance = VP:GetCircularCastPosition(target, 0.25, 200, items[3092].range, 1200, myHero, false)
@@ -342,7 +343,7 @@ function UseOffensive()
 			end
 		end
 	end
-	if ItemReady(3144) and config.offensive.cutlass.cutlass then 
+	if GetSlotItem(3144) ~= nil and ItemReady(3144) and config.offensive.cutlass.cutlass then 
 		local target = targetSelector(items[3144].range, DAMAGE_MAGICAL)
 		if ValidTarget(target) then
 			if config.offensive.cutlass.cutlassKS and target.health < myHero:CalcDamage(target, 100) then
@@ -353,7 +354,7 @@ function UseOffensive()
 			end
 		end
 	end
-	if ItemReady(3142) and config.offensive.youmus.youmus then
+	if GetSlotItem(3142) ~= nil and ItemReady(3142) and config.offensive.youmus.youmus then
 		local target = targetSelector(myHero.range, DAMAGE_PHYSICAL)
 		if ValidTarget(target) and target.isAI == false then
 			if config.offensive.youmus.youmusKS and target.health < (myHero.health * 0.6) and isCombo() then
@@ -365,9 +366,9 @@ function UseOffensive()
 		end
 	end
 	if config.offensive.hydra.hydra then
-		if ItemReady(3074) and CountEnemyHeroInRange(items[3074].range) > 0 then
+		if GetSlotItem(3074) ~= nil and ItemReady(3074) and CountEnemyHeroInRange(items[3074].range) > 0 then
 			CastSpell(GetSlotItem(3074))
-		elseif ItemReady(3748) and CountEnemyHeroInRange(items[3748].range) > 0 then
+		elseif GetSlotItem(3748) ~= nil and ItemReady(3748) and CountEnemyHeroInRange(items[3748].range) > 0 then
 			CastSpell(GetSlotItem(3748))
 		end
 	end
@@ -388,19 +389,19 @@ function Ignite()
 	if CanUseSummoner(summonerSpells.ignite) and config.summoners.ignite.ignite then
 		local target = targetSelector(600, DAMAGE_TRUE)
 		if ValidTarget(target) then
-			local igniteDmg = getDmg("IGNITE", target, myHero)
+			local igniteDmg = 50+(myHero.level*20)
 			if target.health <= igniteDmg and GetDistance(target) > 500 and CountEnemyHeroInRange(target, 500) < 2 then
-				CastSpell(summonerSpell.ignite, target)
+				CastSpell(summonerSpells.ignite, target)
 			end
 			if target.health <= (2 * igniteDmg) then
 				if target.lifeSteal > 10 then
-					CastSpell(summonerSpell.ignite, target)
+					CastSpell(summonerSpells.ignite, target)
 				end
 				if TargetHaveBuff("RegenerationPotion", target) or TargetHaveBuff("ItemMiniRegenPotion", target) or TargetHaveBuff("ItemCrystalFlask", target) then
-					CastSpell(summonerSpell.ignite, target)
+					CastSpell(summonerSpells.ignite, target)
 				end
 				if target.health > myHero.health then
-					CastSpell(summonerSpell.ignite, target)
+					CastSpell(summonerSpells.ignite, target)
 				end
 			end
 		end
@@ -420,45 +421,45 @@ local taunt = { "taunt", "Taunt", "PuncturingTaunt", "GalioIdolOfDurand"}
 function Cleanse()
 	if not ItemReady(3140) and not ItemReady(3222) and not ItemReady(3139) and not ItemReady(3137) then return end
 	if ((myHero.health / myHero.maxHealth) * 100) >= config.cleanse.cleanseHP then return end
-	if TargetHaveBuff("zedulttargetmark") or TargetHaveBuff("FizzMarinerDoom") or TargetHaveBuff("MordekaiserChildrenOfTheGrave") or TargetHaveBuff("PoppyDiplomaticImmunity") or TargetHaveBuff("VladimirHemoplague") then
-		UseCleanse()
+	if TargetHaveBuff("zedrdeathmark") or TargetHaveBuff("FizzMarinerDoom") or TargetHaveBuff("MordekaiserChildrenOfTheGrave") or TargetHaveBuff("PoppyDiplomaticImmunity") or TargetHaveBuff("VladimirHemoplague") then
+		DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 	end
 	if config.cleanse.debuffs.suppression then
 		for _, db in ipairs(suppression) do
 			if TargetHaveBuff(db) then
-				UseCleanse()
+				DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 			end
 		end
 	end
 	if config.cleanse.debuffs.stun then
 		for _, db in ipairs(stun) do
 			if TargetHaveBuff(db) then
-				UseCleanse()
+				DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 			end
 		end
 	end
 	if config.cleanse.debuffs.blind then
 		for _, db in ipairs(blind) do
 			if TargetHaveBuff(db) then
-				UseCleanse()
+				DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 			end
 		end
 	end
 	if config.cleanse.debuffs.snare then
 		for _, db in ipairs(snare) do
 			if TargetHaveBuff(db) then
-				UseCleanse()
+				DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 			end
 		end
 	end
 	if myHero.isCharmed and config.cleanse.debuffs.charm then
-		UseCleanse()
+		DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 	end
 	if myHero.isFeared and config.cleanse.debuffs.fear then
-		UseCleanse()
+		DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 	end
 	if myHero.isTaunted and config.cleanse.debuffs.taunt then
-		UseCleanse()
+		DelayAction(function() UseCleanse() end, config.cleanse.cleanseDelay)
 	end
 end
 
@@ -554,8 +555,8 @@ function menu()
 	config:addSubMenu("Summoners", "summoners")
 	if summonerSpells.exhaust ~= nil then
 		config.summoners:addSubMenu("Exhaust", "exhaust")
-		config.summoners.exhaust("exhaust", "Use Exhaust", SCRIPT_PARAM_ONOFF, true)
-		config.summoners.exhaust("exhaustCombo", "Always use Exhaust in combo", SCRIPT_PARAM_ONOFF, true)
+		config.summoners.exhaust:addParam("exhaust", "Use Exhaust", SCRIPT_PARAM_ONOFF, true)
+		config.summoners.exhaust:addParam("exhaustCombo", "Always use Exhaust in combo", SCRIPT_PARAM_ONOFF, true)
 	end
 	if summonerSpells.heal ~= nil then
 		config.summoners:addSubMenu("Heal", "heal")
@@ -606,6 +607,7 @@ function menu()
 
 	config:addSubMenu("Cleanse", "cleanse")
 	config.cleanse:addParam("cleanse", "Use QSS, Mikael's, Mercurial, Dervish", SCRIPT_PARAM_ONOFF, true)
+	config.cleanse:addParam("cleanseDelay", "Use cleanse after X seconds", SCRIPT_PARAM_SLICE, 0.1, 0, 0.5, 1)
 	config.cleanse:addParam("cleanseHP", "Use cleanse under % hp", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
 	config.cleanse:addSubMenu("Cleanse debuff types", "debuffs")
 	config.cleanse.debuffs:addParam("stun", "Stun", SCRIPT_PARAM_ONOFF, true)
