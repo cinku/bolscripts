@@ -35,7 +35,10 @@ local summonerSpells = {
 	barrier = nil,
 	ignite = nil,
 	exhaust = nil,
+	smite = nil
 }
+
+local smiteDamage = { 390, 410, 430, 450, 480, 510, 540, 570, 600, 640, 680, 720, 760, 800, 850, 900, 950, 1000 }
 
 function OnLoad()
 	loadItemSlots()
@@ -44,6 +47,7 @@ function OnLoad()
 	enemies = GetEnemyHeroes()
 	allies = GetAllyHeroes()
 	table.insert(allies, myHero)
+	jungleMinions = minionManager(MINION_JUNGLE, 500, myHero, MINION_SORT_MAXHEALTH_DEC)
 	VP = VPrediction()
 	menu()
 	PrintChat ("<font color='#0084FF'>NeXtGen A</font><font color='#FFFFFF'>ctivator Loaded!</font>")
@@ -60,6 +64,7 @@ function OnTick()
 	if config.pots then	Potions() end	
 	if summonerSpells.ignite ~= nil then Ignite() end
 	if summonerSpells.exhaust ~= nil then Exhaust() end
+	if summonerSpells.smite ~= nil then Smite() end
 	UseOffensive()
 	UseRanduin()
 	UseZhonyas()
@@ -180,7 +185,7 @@ function Use(unit, spell)
 					end
 				end
 				if config.defensive.fotm and GetSlotItem(3401) ~= nil and GetItemReady(3401) and GetDistance(ally) < items[3401].range then
-					if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 15) then
+					if (ally.health - incomingDmg) < (CountEnemyHeroInRange(700, ally) * ally.level * 10) then
 						CastSpell(GetSlotItem(3401), ally)
 					elseif (ally.health - incomingDmg) < (ally.level * 10) then
 						CastSpell(GetSlotItem(3401), ally)
@@ -408,6 +413,18 @@ function Ignite()
 	end
 end
 
+function Smite()
+	if CanUseSummoner(summonerSpells.smite) and config.summoners.smite.smite then
+		jungleMinions:update()
+		local smiteDmg = smiteDamage[myHero.level]
+		for _, mob in ipairs(jungleMinions.objects) do
+			if ((mob.charName == "SRU_Dragon" and config.summoners.smite.smiteDrake) or (mob.charName == "SRU_Baron" and config.summoners.smite.smiteBaron) or (mob.charName == "SRU_Red" and config.summoners.smite.smiteRed) or (mob.charName == "SRU_Blue" and config.summoners.smite.smiteBlue)) and mob.health < smiteDmg then
+				CastSpell(summonerSpells.smite, mob)
+			end
+		end
+	end
+end
+
 --velkoz, yasuo, quinn, volibear, nocturne, shaco, cait, jinx, karma, maokai, nautilus,
 local suppression = { "suppression", "Suppression", "SkarnerImpale", "AlZaharNetherGrasp", "UrgotSwap2", "InfiniteDuress"}
 local stun = {  "stun", "Stun", "SonaCrescendo", "CurseoftheSadMummy", "EnchantedCrystalArrow", "CassiopeiaPetrifyingGaze", "JaxCounterStrike", "KennenShurikenStorm", "LeonaSolarFlare", "NamiQ", "OrianaDetonateCommand", 
@@ -513,6 +530,8 @@ function loadSummonerSpells()
 			summonerSpells.exhaust = slot
 		elseif myHero:GetSpellData(slot).name == "summonerflash" then
 			summonerSpells.flash = slot
+		elseif myHero:GetSpellData(slot).name == "summonersmite" or myHero:GetSpellData(slot).name == "itemsmiteaoe" or myHero:GetSpellData(slot).name == "s5_summonersmiteplayerganker" or myHero:GetSpellData(slot).name == "s5_summonersmitequick" or myHero:GetSpellData(slot).name == "s5_summonersmiteduel" then
+			summonerSpells.smite = slot
 		end
 	end
 end
@@ -570,6 +589,14 @@ function menu()
 	if summonerSpells.ignite ~= nil then
 		config.summoners:addSubMenu("Ignite", "ignite")
 		config.summoners.ignite:addParam("ignite", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
+	end
+	if summonerSpells.smite ~= nil then
+		config.summoners:addSubMenu("Smite", "smite")
+		config.summoners.smite:addParam("smite", "Use auto Smite", SCRIPT_PARAM_ONOFF, true)
+		config.summoners.smite:addParam("smiteDrake", "Smite Dragon", SCRIPT_PARAM_ONOFF, true)
+		config.summoners.smite:addParam("smiteBaron", "Smite Baron", SCRIPT_PARAM_ONOFF, true)
+		config.summoners.smite:addParam("smiteBlue", "Smite Blue", SCRIPT_PARAM_ONOFF, true)
+		config.summoners.smite:addParam("smiteRed", "Smite Red", SCRIPT_PARAM_ONOFF, true)
 	end
 	config:addSubMenu("Offensive", "offensive")
 	config.offensive:addSubMenu("Botrk", "botrk")
