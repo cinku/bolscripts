@@ -2,6 +2,7 @@ require 'VPrediction'
 
 local startAttackTime = 0
 local windUpTime = 0
+local muramanaActive = false
 
 local items = {
 	[3222] = { name = "ItemMorellosBane", range = 600 },
@@ -119,6 +120,18 @@ function afterAttack()
 	end
 end
 
+function OnUpdateBuff(unit, buff, stacks)
+	if unit~= nil and unit.isMe and buff.name == "Muramana" then
+		muramanaActive = true
+	end
+end
+
+function OnRemoveBuff(unit,buff)
+	if unit ~= nil and unit.isMe and buff.name == "Muramana" then
+		muramanaActive = false
+	end
+end
+
 function beforeAttack()
 	if config.offensive.muramana.muramana then
 		local idMur = 0
@@ -127,11 +140,12 @@ function beforeAttack()
 		elseif GetSlotItem(3043) ~= nil then 
 			idMur = 3043
 		end
-		if idMur ~= 0 and ValidTarget(targetSelector(myHero.range, DAMAGE_PHYSICAL)) and ItemReady(idMur) and myHero.mana > myHero.maxMana * 0.3 then
-			if not TargetHaveBuff("Muramana") then
+		local target = targetSelector(myHero.range + myHero.boundingRadius + 65, DAMAGE_PHYSICAL)
+		if idMur ~= 0 and target ~= nil and target.isAI == false and ValidTarget(target) and ItemReady(idMur) and myHero.mana > myHero.maxMana * 0.3 then
+			if not muramanaActive then
 				CastSpell(GetSlotItem(idMur))
 			end
-		elseif TargetHaveBuff("Muramana") and idMur ~= 0 and ItemReady(idMur) then
+		elseif target == nil and muramanaActive and idMur ~= 0 and ItemReady(idMur) then
 			CastSpell(GetSlotItem(idMur))
 		end
 	end
